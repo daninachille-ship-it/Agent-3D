@@ -3,7 +3,7 @@
 Ton assistant vocal personnel en 3D, façon Jarvis, en français.
 Une sphère holographique cyan, avec un cœur de lumière et des traînées liquides en orbite, qui respire, t'écoute, réfléchit et te répond à voix haute. Autour d'elle, tes conversations flottent comme des bulles reliées au cœur.
 
-![Phare en train de réfléchir](docs/apercu.png)
+![Le monde de Phare : la spirale des conversations à travers les portails](docs/apercu.png)
 
 - **Veille** : le cœur respire lentement, les traînées dérivent.
 - **Écoute** : la forme autour du cœur ondule et les traînées s'écartent au volume de ta voix.
@@ -104,10 +104,24 @@ Tu peux aussi couper Phare en reprenant la parole : appuie sur le micro pendant 
 Toutes les conversations sont enregistrées dans `data/conversations.json`, sur ton ordinateur.
 Phare se souvient des 30 derniers messages de la conversation en cours. **Nouvelle conv.** démarre une page blanche (l'ancienne reste dans le fichier).
 
-Tes 7 dernières conversations tournent autour de la sphère, chacune reliée au cœur par un fil lumineux. La plus grosse bulle, avec un fil en pointillés, est la conversation en cours.
-- Survole une bulle (ou touche-la sur téléphone) pour voir son sujet.
-- Clique dessus : tu vois la date et le nombre d'échanges, et le bouton **Reprendre** pour la continuer là où tu t'étais arrêté.
+Tes 12 dernières conversations sont des bulles dans le monde, de la plus récente (près de Phare) à la plus ancienne (au loin). La bulle au-dessus de Phare, avec un fil en pointillés, est la conversation en cours.
+- Les conversations proches affichent leur sujet et leur date ; approche-toi des autres pour les lire.
+- Clique sur une bulle : tu voles jusqu'à elle, et le bouton **Reprendre** permet de la continuer là où tu t'étais arrêté.
 - Au clavier : `Tab` passe d'une bulle à l'autre, `Entrée` l'ouvre.
+
+### Se déplacer dans le monde
+
+Phare vit dans un espace 3D que tu peux explorer. Tes conversations forment une spirale qui s'enfonce dans la profondeur : **plus tu avances, plus tu remontes dans le temps**. Un fil lumineux relie chaque conversation à Phare, et un fil en pointillés les relie dans l'ordre.
+
+| Action | Ordinateur | Téléphone |
+| --- | --- | --- |
+| Regarder autour | Glisser avec la souris | Glisser avec un doigt |
+| Avancer, reculer, pas de côté | `Z` `Q` `S` `D` ou les flèches | Joystick en bas à gauche |
+| Foncer | Molette | Pincer / écarter deux doigts |
+| Monter, descendre | `E` / `A` | |
+| Courir | `Maj` maintenue | |
+| Aller à une conversation | Clic sur la bulle ou son étiquette | Toucher la bulle |
+| Revenir devant Phare | Bouton **Revenir à Phare** | Pareil |
 
 ### Aperçu des animations
 
@@ -179,8 +193,9 @@ scripts/
 src/
   backend/         d'où viennent les réponses : serveur local (server.ts) ou claude.ai (claude.ts)
   App.tsx          l'interface (boutons, sous-titres, clavier)
-  scene/           la scène 3D (react-three-fiber) : Hologram (sphère, cœur, traînées),
-                   ConversationNodes + NodeLabels (bulles de conversation), CameraRig, Scene (bloom)
+  scene/           le monde 3D (react-three-fiber) : Hologram (sphère, cœur, traînées),
+                   World (sol, poussière, portails), Navigator + NavControls (déplacements, joystick),
+                   ConversationNodes + NodeLabels (spirale du temps), Scene (bloom)
   voice/           la voix : reconnaissance (Web Speech API), mot d'activation,
                    synthèse vocale phrase par phrase, analyse du micro (AnalyserNode)
 ```

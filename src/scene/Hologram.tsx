@@ -22,9 +22,6 @@ import type { PhareState } from "../voice/usePhare";
 
 /** Rayon de la sphère holographique. */
 export const HOLO_RADIUS = 1.55;
-/** Encombrement à l'écran, traînées et bulles de conversation comprises. */
-export const HOLO_HALF_HEIGHT = 2.45;
-export const HOLO_HALF_WIDTH = 3.0;
 
 const CYAN = new Color("#5cd0ff");
 

@@ -223,7 +223,7 @@ export const claudeBackend: Backend = {
         }),
       )
       .sort((a, b) => (a.current ? -1 : b.current ? 1 : b.updatedAt.localeCompare(a.updatedAt)))
-      .slice(0, 7);
+      .slice(0, 12);
   },
 
   async newConversation() {

@@ -31,8 +31,12 @@ export function NodeLabels({ conversations, selected, hovered, onSelect, onHover
     const loop = () => {
       for (const [id, el] of refs.current) {
         const p = nodeScreen.get(id);
-        if (!p) continue;
+        const shown = !!p && p.onScreen;
+        el.style.visibility = shown ? "" : "hidden";
+        if (!p || !shown) continue;
         el.style.transform = `translate(${p.x}px, ${p.y - p.size - 8}px) translate(-50%, -100%)`;
+        // Les conversations proches affichent leur titre ; au loin, il s'efface.
+        el.style.setProperty("--near", String(Math.max(0, Math.min(1, (22 - p.dist) / 12))));
       }
       raf = requestAnimationFrame(loop);
     };
@@ -64,11 +68,12 @@ export function NodeLabels({ conversations, selected, hovered, onSelect, onHover
             >
               {conv.current ? "● " : ""}
               {conv.title}
+              <span className="node-date">{shortDate(conv.updatedAt)}</span>
             </button>
             {isOpen && (
               <div className="node-details">
                 <span>
-                  {shortDate(conv.updatedAt)} · {Math.ceil(conv.count / 2)} échange{conv.count > 2 ? "s" : ""}
+                  {Math.ceil(conv.count / 2)} échange{conv.count > 2 ? "s" : ""}
                 </span>
                 {conv.current ? (
                   <em>Conversation en cours</em>

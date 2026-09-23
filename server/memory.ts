@@ -88,7 +88,7 @@ function titleOf(conv: Conversation): string {
 }
 
 /** Les conversations les plus récentes d'abord, sans leurs messages. */
-export async function listConversations(limit = 7): Promise<ConversationSummary[]> {
+export async function listConversations(limit = 12): Promise<ConversationSummary[]> {
   const store = await load();
   const current = store.conversations.at(-1);
   return store.conversations
