@@ -1,14 +1,16 @@
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Canvas } from "@react-three/fiber";
+import { PerformanceMonitor } from "@react-three/drei";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { Vector3 } from "three";
 import { Hologram } from "./Hologram";
 import { ConversationNodes } from "./ConversationNodes";
+import { ConversationPanel } from "./ConversationPanel";
 import { NodeLabels } from "./NodeLabels";
 import { Navigator } from "./Navigator";
 import { NavControls } from "./NavControls";
-import { World } from "./World";
 import { Orbits } from "./Orbits";
+import { World } from "./World";
 import { homeFor, nav } from "./nav";
 import { nodeScreen } from "./nodeScreen";
 import type { PhareState } from "../voice/usePhare";
@@ -21,12 +23,19 @@ interface Props {
   onResume: (id: string) => void;
 }
 
-/** Un monde à explorer : Phare au centre, tes conversations en spirale dans la profondeur du temps. */
-export function Scene({ state, reduced, conversations, onResume }: Props) {
+const COARSE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
+/**
+ * Un monde à explorer : Phare au centre, tes conversations en spirale dans la profondeur du temps.
+ * `memo` : la scène ne se recalcule pas à chaque mot affiché en sous-titre.
+ */
+export const Scene = memo(function Scene({ state, reduced, conversations, onResume }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
+  // Qualité adaptative : on baisse la résolution si l'appareil peine, on la remonte s'il a de la marge.
+  const [dpr, setDpr] = useState(COARSE ? 1.25 : 1.5);
 
-  // Ouvrir une conversation, c'est aussi voler jusqu'à elle.
+  // Ouvrir une conversation, c'est voler jusqu'à elle et afficher son contenu.
   const select = useCallback((id: string | null) => {
     setSelected(id);
     const target = id ? nodeScreen.get(id)?.world : null;
@@ -36,17 +45,21 @@ export function Scene({ state, reduced, conversations, onResume }: Props) {
     nav.flyTo(viewpoint, target);
   }, []);
 
+  const selectedSummary = conversations.find((c) => c.id === selected) ?? null;
+
   return (
     <>
       <Canvas
-        dpr={[1, 1.75]}
+        dpr={dpr}
         camera={{ position: homeFor(window.innerWidth / window.innerHeight).toArray(), fov: 55, near: 0.1, far: 400 }}
-        onPointerMissed={(e) => {
-          // Un clic dans le vide ferme la conversation ouverte (pas un glisser pour regarder).
-          if (e.type === "click") setSelected(null);
-        }}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
       >
+        <PerformanceMonitor
+          onDecline={() => setDpr((d) => Math.max(0.75, d - 0.25))}
+          onIncline={() => setDpr((d) => Math.min(COARSE ? 1.5 : 2, d + 0.25))}
+          flipflops={3}
+          onFallback={() => setDpr(1)}
+        />
         <color attach="background" args={["#071430"]} />
 
         <World reduced={reduced} />
@@ -63,8 +76,8 @@ export function Scene({ state, reduced, conversations, onResume }: Props) {
         />
         <Navigator reduced={reduced} />
 
-        <EffectComposer>
-          <Bloom mipmapBlur intensity={0.8} luminanceThreshold={0.7} luminanceSmoothing={0.2} />
+        <EffectComposer multisampling={COARSE ? 0 : 2}>
+          <Bloom mipmapBlur intensity={0.85} luminanceThreshold={0.7} luminanceSmoothing={0.2} resolutionScale={0.5} />
           <Vignette offset={0.35} darkness={0.55} />
         </EffectComposer>
       </Canvas>
@@ -74,9 +87,15 @@ export function Scene({ state, reduced, conversations, onResume }: Props) {
         hovered={hovered}
         onSelect={select}
         onHover={setHovered}
-        onResume={onResume}
       />
       <NavControls />
+      <ConversationPanel
+        summary={selectedSummary}
+        onClose={() => setSelected(null)}
+        onResume={(id) => {
+          onResume(id);
+        }}
+      />
     </>
   );
-}
+});

@@ -15,6 +15,7 @@ export const nav = {
   /** Vrai dès que la personne s'est déplacée (pour masquer l'aide). */
   moved: false,
   flyTo(pos: Vector3, look: Vector3) {
+    this.moved = true;
     this.pending = { pos: pos.clone(), look: look.clone() };
   },
   home() {

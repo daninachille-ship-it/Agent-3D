@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { nav, navInput } from "./nav";
 import { Speaker, voice } from "../voice/speaker";
 import { useVoiceStatus } from "../hooks/useVoiceStatus";
+import { VoiceSettings } from "./VoiceSettings";
 
 const COARSE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
@@ -88,8 +89,14 @@ function VoiceToggle() {
     test.finish();
   };
   return (
-    <button className={`secondary ${status === "blocked" ? "warn" : ""}`} onClick={toggle} aria-pressed={on}>
-      {status === "blocked" ? "🔈 Réactiver la voix" : on ? "🔊 Voix" : "🔇 Voix coupée"}
+    <button
+      className={`secondary ${status === "blocked" ? "warn" : ""}`}
+      onClick={toggle}
+      aria-pressed={on}
+      title={status === "blocked" ? "Réactiver la voix" : on ? "Couper la voix" : "Rétablir la voix"}
+    >
+      <span aria-hidden>{status === "blocked" ? "🔈" : on ? "🔊" : "🔇"}</span>
+      <span className="btn-label">{status === "blocked" ? "Réactiver la voix" : on ? "Voix" : "Voix coupée"}</span>
     </button>
   );
 }
@@ -97,6 +104,8 @@ function VoiceToggle() {
 /** Aide à la navigation (qui s'efface une fois qu'on a bougé), plein écran et retour vers Phare. */
 export function NavControls() {
   const [faded, setFaded] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const fullscreen = useFullscreen();
 
   useEffect(() => {
@@ -114,16 +123,44 @@ export function NavControls() {
       <div className="nav-ui">
         <div className="nav-buttons">
           <VoiceToggle />
+          <button
+            className="secondary"
+            onClick={() => setSettingsOpen((o) => !o)}
+            aria-expanded={settingsOpen}
+            title="Réglages de la voix"
+          >
+            <span aria-hidden>⚙</span>
+            <span className="btn-label">Réglages</span>
+          </button>
           {fullscreen.supported && (
-            <button className="secondary" onClick={fullscreen.toggle} aria-pressed={fullscreen.active}>
-              {fullscreen.active ? "⤡ Quitter le plein écran" : "⤢ Plein écran"}
+            <button
+              className="secondary"
+              onClick={fullscreen.toggle}
+              aria-pressed={fullscreen.active}
+              title={fullscreen.active ? "Quitter le plein écran" : "Plein écran"}
+            >
+              <span aria-hidden>{fullscreen.active ? "⤡" : "⤢"}</span>
+              <span className="btn-label">{fullscreen.active ? "Quitter" : "Plein écran"}</span>
             </button>
           )}
-          <button className="secondary" onClick={() => nav.home()}>
-            ◎ Revenir à Phare
+          <button className="secondary" onClick={() => nav.home()} title="Revenir devant Phare">
+            <span aria-hidden>◎</span>
+            <span className="btn-label">Revenir à Phare</span>
+          </button>
+          <button
+            className="secondary"
+            onClick={() => {
+              setHelpOpen((o) => !o);
+              setFaded(false);
+            }}
+            aria-expanded={helpOpen || !faded}
+            title="Comment se déplacer"
+          >
+            <span aria-hidden>?</span>
           </button>
         </div>
-        <p className={`nav-help ${faded ? "faded" : ""}`} aria-hidden={faded}>
+        {settingsOpen && <VoiceSettings onClose={() => setSettingsOpen(false)} />}
+        <p className={`nav-help ${faded && !helpOpen ? "faded" : ""}`} aria-hidden={faded && !helpOpen}>
           {COARSE ? (
             <>
               Glisse pour regarder autour.

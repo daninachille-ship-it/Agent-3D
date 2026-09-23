@@ -66,17 +66,82 @@ export const voice = {
   },
 };
 
+/* --- Choix de la voix --- */
+
+export interface VoicePrefs {
+  /** Voix choisie à la main (sinon : la meilleure voix féminine trouvée). */
+  voiceURI: string | null;
+  rate: number;
+  pitch: number;
+}
+
+const PREFS_KEY = "phare-voice";
+const DEFAULT_PREFS: VoicePrefs = { voiceURI: null, rate: 1, pitch: 1 };
+
+function loadPrefs(): VoicePrefs {
+  try {
+    return { ...DEFAULT_PREFS, ...(JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}") as Partial<VoicePrefs>) };
+  } catch {
+    return { ...DEFAULT_PREFS };
+  }
+}
+
+let prefs = loadPrefs();
+
+export function getVoicePrefs(): VoicePrefs {
+  return prefs;
+}
+
+export function setVoicePrefs(patch: Partial<VoicePrefs>): void {
+  prefs = { ...prefs, ...patch };
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    /* réglage gardé le temps de la visite */
+  }
+}
+
+// Voix connues pour être féminines, et les plus naturelles (Edge « Natural », Apple « Premium »…).
+const FEMALE = /denise|vivienne|eloise|éloïse|julie|hortense|am[ée]lie|audrey|aur[ée]lie|marie|l[ée]a\b|chantal|sylvie|c[ée]line|virginie|brigitte|coralie|jacqueline|google fran[çc]ais|google french/i;
+const MALE = /thomas|henri|paul|r[ée]my|jacques|nicolas|daniel|antoine|j[ée]r[ôo]me|guillaume|mathieu|yves|fabrice|alain|claude\b|gr[ée]goire|damien|olivier/i;
+const HUMAN = /natural|neural|online|premium|enhanced|am[ée]lior[ée]e?/i;
+
+function score(v: SpeechSynthesisVoice): number {
+  const lang = v.lang?.replace("_", "-").toLowerCase() ?? "";
+  let s = lang === "fr-fr" ? 4 : lang.startsWith("fr") ? 2 : -100;
+  if (HUMAN.test(v.name)) s += 6;
+  if (FEMALE.test(v.name)) s += 5;
+  if (MALE.test(v.name)) s -= 8;
+  if (!v.localService) s += 1; // les voix en ligne sont souvent plus naturelles
+  return s;
+}
+
+export interface VoiceOption {
+  uri: string;
+  label: string;
+  female: boolean;
+}
+
+/** Les voix françaises de l'appareil, les plus naturelles et féminines d'abord. */
+export function listFrenchVoices(): VoiceOption[] {
+  if (!supported) return [];
+  return window.speechSynthesis
+    .getVoices()
+    .filter((v) => v.lang?.toLowerCase().startsWith("fr"))
+    .sort((a, b) => score(b) - score(a))
+    .map((v) => ({
+      uri: v.voiceURI,
+      label: v.name.replace(/^Microsoft\s+/, "").replace(/\s+-\s+.*$/, ""),
+      female: FEMALE.test(v.name),
+    }));
+}
+
 function pickFrenchVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
-  const fr = voices.filter((v) => v.lang?.toLowerCase().startsWith("fr"));
-  const frFR = fr.filter((v) => v.lang.replace("_", "-").toLowerCase() === "fr-fr");
-  const pool = frFR.length ? frFR : fr;
-  return (
-    pool.find((v) => /google/i.test(v.name)) ??
-    pool.find((v) => /natural|premium|enhanced/i.test(v.name)) ??
-    pool[0] ??
-    null
-  );
+  const chosen = prefs.voiceURI ? voices.find((v) => v.voiceURI === prefs.voiceURI) : undefined;
+  if (chosen) return chosen;
+  const best = voices.filter((v) => v.lang?.toLowerCase().startsWith("fr")).sort((a, b) => score(b) - score(a))[0];
+  return best ?? null;
 }
 
 /**
@@ -93,7 +158,8 @@ export class Speaker {
   private started = false;
   private timers: number[] = [];
   private voice: SpeechSynthesisVoice | null = null;
-  private readonly rate = 1.05;
+  private readonly rate = prefs.rate;
+  private readonly pitch = prefs.pitch;
 
   constructor(
     private onStart: () => void,
@@ -199,6 +265,7 @@ export class Speaker {
     this.voice ??= pickFrenchVoice();
     if (this.voice) u.voice = this.voice;
     u.rate = this.rate;
+    u.pitch = this.pitch;
 
     let began = false;
     let realBoundaries = false;

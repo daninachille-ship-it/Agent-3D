@@ -313,6 +313,9 @@ code {
   font-family: system-ui, sans-serif;
   white-space: nowrap;
 }
+.node-label[data-clickable="1"] {
+  pointer-events: auto;
+}
 .node-label.visible,
 .node-label.open,
 .node-label:focus-within {
@@ -372,7 +375,7 @@ code {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  z-index: 2;
+  z-index: 4; /* les réglages passent au-dessus du panneau de conversation */
 }
 .nav-buttons {
   display: flex;
@@ -426,5 +429,272 @@ code {
   border-radius: 50%;
   background: rgba(143, 224, 255, 0.55);
   box-shadow: 0 0 16px rgba(92, 208, 255, 0.5);
+  pointer-events: none;
+}
+
+/* --- Boutons --- */
+.secondary {
+  gap: 6px;
+}
+.btn-label {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  /* Sur téléphone, les boutons du haut ne gardent que leur icône. */
+  .nav-buttons .btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .nav-buttons .secondary {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    font-size: 15px;
+  }
+}
+.primary {
+  font: 600 14px system-ui, sans-serif;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #5cd0ff;
+  color: #041428;
+  box-shadow: 0 0 24px rgba(92, 208, 255, 0.35);
+}
+.primary:hover {
+  background: #8fe0ff;
+}
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  font: 20px/1 system-ui, sans-serif;
+  color: var(--muted);
+}
+.icon-btn:hover {
+  color: var(--ink);
+}
+
+/* --- Sous-titres : un voile léger pour rester lisible par-dessus la 3D --- */
+.subtitles {
+  padding: 10px 16px;
+  border-radius: 18px;
+}
+.subtitles:has(p) {
+  background: radial-gradient(ellipse at center, rgba(4, 12, 30, 0.72), rgba(4, 12, 30, 0.35) 70%, transparent);
+}
+.thinking-dots {
+  display: inline-flex;
+  gap: 6px;
+  justify-content: center;
+  padding: 4px 0;
+}
+.thinking-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8fe0ff;
+  animation: dot 1.1s infinite ease-in-out;
+}
+.thinking-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.thinking-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+/* --- Panneau d'une conversation --- */
+.panel {
+  position: absolute;
+  z-index: 3;
+  top: calc(max(16px, env(safe-area-inset-top)) + 84px);
+  right: 16px;
+  bottom: 200px;
+  width: min(380px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(6, 18, 40, 0.86);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(92, 208, 255, 0.08);
+  font-family: system-ui, sans-serif;
+  animation: panel-in 0.25s ease-out;
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(92, 208, 255, 0.15);
+}
+.panel-kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fe0ff;
+}
+.panel-title {
+  margin: 0;
+  font: 600 16px/1.35 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.panel-messages {
+  flex: 1;
+  margin: 0;
+  padding: 14px 16px;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overscroll-behavior: contain;
+}
+.panel-empty {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 24px 8px;
+}
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 88%;
+}
+.msg p {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+.msg-who {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.msg-user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.msg-user p {
+  background: rgba(92, 208, 255, 0.16);
+  border: 1px solid rgba(92, 208, 255, 0.3);
+  border-bottom-right-radius: 4px;
+}
+.msg-assistant p {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom-left-radius: 4px;
+  color: var(--ink);
+}
+.panel-foot {
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(92, 208, 255, 0.15);
+  display: flex;
+}
+.panel-foot .primary {
+  flex: 1;
+}
+@media (max-width: 640px) {
+  .panel {
+    top: calc(max(16px, env(safe-area-inset-top)) + 64px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 190px;
+  }
+}
+
+/* --- Réglages de la voix --- */
+.settings {
+  width: min(320px, calc(100vw - 32px));
+  padding: 14px 16px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(6, 18, 40, 0.92);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: system-ui, sans-serif;
+  text-align: left;
+}
+.settings-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settings-head h2 {
+  margin: 0;
+  font: 600 15px system-ui, sans-serif;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.field span {
+  display: flex;
+  justify-content: space-between;
+}
+.field output {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.field select {
+  font: 14px system-ui, sans-serif;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(4, 12, 30, 0.8);
+  color: var(--ink);
+}
+.field input[type="range"] {
+  accent-color: #5cd0ff;
+}
+.settings-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Quand une conversation est ouverte, l'aide de navigation s'efface pour ne pas la recouvrir. */
+.app:has(.panel) .nav-help {
+  opacity: 0;
   pointer-events: none;
 }

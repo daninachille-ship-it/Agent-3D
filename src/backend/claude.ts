@@ -233,6 +233,11 @@ export const claudeBackend: Backend = {
     memory.conversations.push({ id: newId(), startedAt: new Date().toISOString(), messages: [] });
   },
 
+  async getConversation(id) {
+    await init();
+    return memory.conversations.find((c) => c.id === id) ?? null;
+  },
+
   async resumeConversation(id) {
     await init();
     const i = memory.conversations.findIndex((c) => c.id === id);

@@ -8,7 +8,6 @@ interface Props {
   hovered: string | null;
   onSelect: (id: string | null) => void;
   onHover: (id: string | null) => void;
-  onResume: (id: string) => void;
 }
 
 function shortDate(iso: string): string {
@@ -23,7 +22,7 @@ function shortDate(iso: string): string {
  * Étiquettes HTML posées au-dessus des bulles 3D : lisibles, cliquables
  * et accessibles au clavier (Tab), contrairement à un texte dessiné dans la 3D.
  */
-export function NodeLabels({ conversations, selected, hovered, onSelect, onHover, onResume }: Props) {
+export function NodeLabels({ conversations, selected, hovered, onSelect, onHover }: Props) {
   const refs = useRef(new Map<string, HTMLDivElement>());
 
   useEffect(() => {
@@ -36,7 +35,10 @@ export function NodeLabels({ conversations, selected, hovered, onSelect, onHover
         if (!p || !shown) continue;
         el.style.transform = `translate(${p.x}px, ${p.y - p.size - 8}px) translate(-50%, -100%)`;
         // Les conversations proches affichent leur titre ; au loin, il s'efface.
-        el.style.setProperty("--near", String(Math.max(0, Math.min(1, (22 - p.dist) / 12))));
+        const near = Math.max(0, Math.min(1, (22 - p.dist) / 12));
+        el.style.setProperty("--near", String(near));
+        // Cliquable dès que l'étiquette est bien lisible.
+        el.dataset.clickable = near > 0.35 ? "1" : "";
       }
       raf = requestAnimationFrame(loop);
     };
@@ -60,36 +62,16 @@ export function NodeLabels({ conversations, selected, hovered, onSelect, onHover
           >
             <button
               className="node-title"
-              onClick={() => onSelect(isOpen ? null : conv.id)}
+              onClick={() => onSelect(conv.id)}
               onFocus={() => onHover(conv.id)}
               onBlur={() => onHover(null)}
-              aria-expanded={isOpen}
-              aria-label={`Conversation : ${conv.title}${conv.current ? " (en cours)" : ""}`}
+              aria-pressed={isOpen}
+              aria-label={`Ouvrir la conversation : ${conv.title}${conv.current ? " (en cours)" : ""}`}
             >
               {conv.current ? "● " : ""}
               {conv.title}
               <span className="node-date">{shortDate(conv.updatedAt)}</span>
             </button>
-            {isOpen && (
-              <div className="node-details">
-                <span>
-                  {Math.ceil(conv.count / 2)} échange{conv.count > 2 ? "s" : ""}
-                </span>
-                {conv.current ? (
-                  <em>Conversation en cours</em>
-                ) : (
-                  <button
-                    className="node-resume"
-                    onClick={() => {
-                      onSelect(null);
-                      onResume(conv.id);
-                    }}
-                  >
-                    Reprendre
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         );
       })}

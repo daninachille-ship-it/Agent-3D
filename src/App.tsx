@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Scene } from "./scene/Scene";
 import { usePhare, type PhareState } from "./voice/usePhare";
 import { useReducedMotion } from "./hooks/useReducedMotion";
@@ -38,7 +38,7 @@ function askOrientationPermission() {
 export function App() {
   const reduced = useReducedMotion();
   const phare = usePhare();
-  const { state, pressStart, pressEnd, stop } = phare;
+  const { state, pressStart, pressEnd, stop, resumeConversation } = phare;
   const answerRef = useRef<HTMLParagraphElement>(null);
   const health = useHealth();
   const voiceStatus = useVoiceStatus();
@@ -97,6 +97,9 @@ export function App() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [phare.answerText]);
 
+  // Référence stable : la scène 3D (mémorisée) ne se redessine pas pour rien.
+  const onResume = useCallback((id: string) => void resumeConversation(id).then(refresh), [resumeConversation, refresh]);
+
   const busy = state === "thinking" || state === "speaking";
   const shown = previewState ?? state;
 
@@ -107,7 +110,7 @@ export function App() {
           state={shown}
           reduced={reduced}
           conversations={conversations}
-          onResume={(id) => void phare.resumeConversation(id).then(refresh)}
+          onResume={onResume}
         />
       </div>
 
@@ -120,6 +123,13 @@ export function App() {
 
       <section className="subtitles" aria-live="polite">
         {phare.userText && <p className="user">« {phare.userText} »</p>}
+        {state === "thinking" && !phare.answerText && (
+          <span className="thinking-dots" aria-label="Phare réfléchit">
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
         {phare.answerText && (
           <p className="answer" ref={answerRef}>
             {phare.answerText}

@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, DoubleSide, Group, Mesh, MeshBasicMaterial, RingGeometry } from "three";
 import { audioBus } from "../voice/audioBus";
 import type { PhareState } from "../voice/usePhare";
+import { ticksGeometry } from "./ticks";
 
 /** Anneaux en orbite autour de Phare : rayon, inclinaison, vitesse propre. */
 const RINGS = [
@@ -21,6 +22,10 @@ const RIPPLE_LIFE = 1.4; // secondes
  */
 export function Orbits({ state, reduced }: { state: PhareState; reduced: boolean }) {
   const ringRefs = useRef<(Group | null)[]>([]);
+  const tickGeos = useMemo(
+    () => RINGS.map((r) => ticksGeometry(r.r, 48, { longEvery: 4, short: 0.07, long: 0.16, thickness: 0.012 })),
+    [],
+  );
   const spins = useRef(RINGS.map(() => 0));
   const speed = useRef(1);
 
@@ -100,16 +105,10 @@ export function Orbits({ state, reduced }: { state: PhareState; reduced: boolean
               <torusGeometry args={[ring.r, 0.016, 8, 200]} />
               <meshBasicMaterial color="#8fe0ff" transparent opacity={0.7} depthWrite={false} />
             </mesh>
-            {/* Graduations le long de l'anneau */}
-            {Array.from({ length: 48 }, (_, k) => {
-              const a = (k / 48) * Math.PI * 2;
-              return (
-                <mesh key={k} position={[Math.cos(a) * ring.r, Math.sin(a) * ring.r, 0]} rotation={[0, 0, a]}>
-                  <boxGeometry args={[k % 4 ? 0.07 : 0.16, 0.012, 0.012]} />
-                  <meshBasicMaterial color="#8fe0ff" transparent opacity={0.55} depthWrite={false} />
-                </mesh>
-              );
-            })}
+            {/* Graduations le long de l'anneau (une seule géométrie fusionnée) */}
+            <mesh geometry={tickGeos[i]}>
+              <meshBasicMaterial color="#8fe0ff" transparent opacity={0.55} depthWrite={false} />
+            </mesh>
             {/* Perles lumineuses qui voyagent avec l'anneau */}
             {Array.from({ length: ring.beads }, (_, b) => {
               const a = (b / ring.beads) * Math.PI * 2 + i;

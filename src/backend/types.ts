@@ -36,4 +36,6 @@ export interface Backend {
   listConversations(): Promise<ConversationSummary[]>;
   newConversation(): Promise<void>;
   resumeConversation(id: string): Promise<Conversation | null>;
+  /** Une conversation complète, pour la relire (sans la reprendre). */
+  getConversation(id: string): Promise<Conversation | null>;
 }

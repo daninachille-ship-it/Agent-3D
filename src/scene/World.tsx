@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Grid, Stars } from "@react-three/drei";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Group, MeshBasicMaterial, Points } from "three";
 import { audioBus } from "../voice/audioBus";
+import { ticksGeometry } from "./ticks";
 
 /** Profondeurs des portails : ils jalonnent la spirale du temps. */
 const PORTALS = [
@@ -31,6 +32,10 @@ export function World({ reduced }: { reduced: boolean }) {
     return g;
   }, []);
 
+  const portalTicks = useMemo(
+    () => PORTALS.map((p) => ticksGeometry(p.r * 1.12, 36, { longEvery: 3, short: 0.35, long: 0.8, thickness: 0.04 })),
+    [],
+  );
   const dustRef = useRef<Points>(null);
   const portals = useRef<Group>(null);
 
@@ -96,16 +101,10 @@ export function World({ reduced }: { reduced: boolean }) {
               <torusGeometry args={[p.r * 1.06, 0.02, 6, 160]} />
               <meshBasicMaterial color="#bff2ff" transparent opacity={0.25} depthWrite={false} userData={{ base: 0.25 }} />
             </mesh>
-            {/* Graduations autour du portail, comme un cadran. */}
-            {Array.from({ length: 36 }, (_, k) => {
-              const a = (k / 36) * Math.PI * 2;
-              return (
-                <mesh key={k} position={[Math.cos(a) * p.r * 1.12, Math.sin(a) * p.r * 1.12, 0]} rotation={[0, 0, a]}>
-                  <boxGeometry args={[k % 3 ? 0.35 : 0.8, 0.04, 0.04]} />
-                  <meshBasicMaterial color="#5cd0ff" transparent opacity={0.4} depthWrite={false} />
-                </mesh>
-              );
-            })}
+            {/* Graduations autour du portail, comme un cadran (une seule géométrie fusionnée). */}
+            <mesh geometry={portalTicks[i]}>
+              <meshBasicMaterial color="#5cd0ff" transparent opacity={0.4} depthWrite={false} userData={{ base: 0.4 }} />
+            </mesh>
           </group>
         ))}
       </group>

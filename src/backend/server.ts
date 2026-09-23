@@ -58,6 +58,15 @@ export const serverBackend: Backend = {
     await fetch("/api/conversations/new", { method: "POST" });
   },
 
+  async getConversation(id) {
+    try {
+      const res = await fetch(`/api/conversations/${encodeURIComponent(id)}`, { cache: "no-store" });
+      return res.ok ? ((await res.json()) as Conversation) : null;
+    } catch {
+      return null;
+    }
+  },
+
   async resumeConversation(id) {
     const res = await fetch(`/api/conversations/${encodeURIComponent(id)}/resume`, { method: "POST" });
     return res.ok ? ((await res.json()) as Conversation) : null;

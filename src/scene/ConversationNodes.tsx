@@ -16,10 +16,12 @@ const DRAG_TOLERANCE = 6;
  * la conversation en cours est près de Phare, les plus anciennes s'enfoncent en spirale.
  */
 export function timelinePosition(i: number): Vector3 {
-  if (i === 0) return new Vector3(1.9, 1.9, 1.0);
-  const angle = 0.6 + i * 0.95;
-  const r = 4.2 + i * 0.45;
-  return new Vector3(Math.cos(angle) * r, 0.6 + Math.sin(i * 1.3) * 1.8, -i * 6);
+  // La conversation en cours flotte en haut à droite de Phare, au-delà de ses anneaux.
+  if (i === 0) return new Vector3(2.6, 1.9, -1.2);
+  // Les autres s'écartent en spirale large : de l'air entre chaque bulle et chaque fil.
+  const angle = 0.5 + i * 1.05;
+  const r = 6.5 + i * 0.7;
+  return new Vector3(Math.cos(angle) * r, 1 + Math.sin(i * 1.3) * 2.6, -3 - i * 8.5);
 }
 
 interface Props {
@@ -47,7 +49,7 @@ export function ConversationNodes({ conversations, state, reduced, selected, hov
       conversations.map((c, i) => {
         const end = timelinePosition(i);
         const start = end.clone().normalize().multiplyScalar(HOLO_RADIUS);
-        const mid = start.clone().lerp(end, 0.5).add(new Vector3(0, 0.8 + i * 0.1, 0));
+        const mid = start.clone().lerp(end, 0.5).add(new Vector3(0, 1.4 + i * 0.15, 0));
         const size = c.current ? 0.42 : Math.min(0.28 + c.count * 0.01, 0.5);
         return { conv: c, start, mid, end, size, curve: new QuadraticBezierCurve3(start, mid, end) };
       }),
@@ -108,16 +110,16 @@ export function ConversationNodes({ conversations, state, reduced, selected, hov
 
   if (!layout.length) return null;
 
-  const click = (id: string, isOpen: boolean) => (e: ThreeEvent<MouseEvent>) => {
+  const click = (id: string) => (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     if (e.delta > DRAG_TOLERANCE) return;
-    onSelect(isOpen ? null : id);
+    onSelect(id);
   };
 
   return (
     <group>
       {timeThread && (
-        <Line points={timeThread} color="#5cd0ff" lineWidth={1} transparent opacity={0.3} dashed dashSize={0.4} gapSize={0.3} />
+        <Line points={timeThread} color="#5cd0ff" lineWidth={1} transparent opacity={0.18} dashed dashSize={0.5} gapSize={0.4} />
       )}
       {layout.map(({ conv, start, mid, end, size }) => {
         const isOpen = selected === conv.id;
@@ -132,9 +134,9 @@ export function ConversationNodes({ conversations, state, reduced, selected, hov
               mid={mid}
               end={end}
               color={conv.current ? "#bff2ff" : "#5cd0ff"}
-              lineWidth={conv.current ? 2 : 1.2}
+              lineWidth={conv.current ? 1.6 : 1}
               transparent
-              opacity={isHot ? 0.9 : 0.4}
+              opacity={isHot ? 0.85 : 0.22}
               dashed={conv.current}
               dashSize={0.2}
               gapSize={0.1}
@@ -167,7 +169,7 @@ export function ConversationNodes({ conversations, state, reduced, selected, hov
                   onHover(null);
                   document.body.style.cursor = "";
                 }}
-                onClick={click(conv.id, isOpen)}
+                onClick={click(conv.id)}
               >
                 <icosahedronGeometry args={[size, 1]} />
                 <meshBasicMaterial color={isHot ? "#c9f4ff" : "#5cd0ff"} wireframe transparent opacity={0.85} />

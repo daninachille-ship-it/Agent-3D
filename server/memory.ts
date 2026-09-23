@@ -105,6 +105,11 @@ export async function listConversations(limit = 12): Promise<ConversationSummary
     .slice(0, limit);
 }
 
+/** Une conversation complète, pour la relire. */
+export async function getConversation(id: string): Promise<Conversation | null> {
+  return (await load()).conversations.find((c) => c.id === id) ?? null;
+}
+
 /** Reprend une ancienne conversation : elle redevient la conversation en cours. */
 export async function resumeConversation(id: string): Promise<Conversation | null> {
   const store = await load();

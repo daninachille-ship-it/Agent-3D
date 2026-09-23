@@ -106,7 +106,18 @@ Phare se souvient des 30 derniers messages de la conversation en cours. **Nouvel
 
 Tes 12 dernières conversations sont des bulles dans le monde, de la plus récente (près de Phare) à la plus ancienne (au loin). La bulle au-dessus de Phare, avec un fil en pointillés, est la conversation en cours.
 - Les conversations proches affichent leur sujet et leur date ; approche-toi des autres pour les lire.
-- Clique sur une bulle : tu voles jusqu'à elle, et le bouton **Reprendre** permet de la continuer là où tu t'étais arrêté.
+- Clique sur une bulle ou sur son étiquette : tu voles jusqu'à elle et un panneau affiche toute la conversation. Le bouton **Reprendre cette conversation** la remet en cours, là où tu t'étais arrêté.
+
+### La voix de Phare
+
+Le bouton **⚙ Réglages** (en haut à droite) permet de choisir la voix, la vitesse et le ton, et de les écouter. Par défaut, Phare prend la voix féminine la plus naturelle de ton appareil.
+
+Les voix viennent de ton appareil, pas de Phare. Les plus humaines :
+- **Ordinateur** : ouvre Phare dans **Microsoft Edge**, qui propose Denise ou Vivienne (voix « Natural »).
+- **iPhone** : Réglages › Accessibilité › Contenu énoncé › Voix › Français › télécharge **Audrey (Premium)** ou Amélie (améliorée).
+- **Android** : Réglages › Synthèse vocale › Google › Français (France) › télécharge la voix haute qualité.
+
+Le bouton **🔊** coupe ou rétablit la voix. S'il devient **Réactiver la voix**, le son est bloqué par le navigateur : touche-le, et vérifie que le téléphone n'est pas en mode silencieux.
 - Au clavier : `Tab` passe d'une bulle à l'autre, `Entrée` l'ouvre.
 
 ### Se déplacer dans le monde
