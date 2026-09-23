@@ -698,3 +698,28 @@ code {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Monter / descendre (téléphone) */
+.lift {
+  position: absolute;
+  left: 124px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 196px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
+}
+.lift-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(10, 30, 60, 0.45);
+  backdrop-filter: blur(4px);
+  color: #bff2ff;
+  font-size: 14px;
+  touch-action: none;
+}
+.lift-btn:active {
+  background: rgba(92, 208, 255, 0.35);
+}

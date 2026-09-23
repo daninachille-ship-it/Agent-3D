@@ -6,8 +6,11 @@ export function homeFor(aspect: number): Vector3 {
   return HOME.clone().setZ(HOME.z + Math.max(0, 1 - aspect) * 7);
 }
 
-/** Joystick tactile : x = pas de côté, y = avant (-1) / arrière (+1). Écrit par le joystick, lu par la caméra. */
-export const navInput = { x: 0, y: 0 };
+/**
+ * Commandes tactiles, lues par la caméra : x = pas de côté, y = avant (-1) / arrière (+1) (joystick),
+ * z = monter (+1) / descendre (-1) (boutons ▲ ▼).
+ */
+export const navInput = { x: 0, y: 0, z: 0 };
 
 /** Ordres de vol envoyés par l'interface (bouton « Phare », clic sur une conversation). */
 export const nav = {

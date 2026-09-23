@@ -2,12 +2,15 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Vector3 } from "three";
 import { homeFor, nav, navInput } from "./nav";
+import { backend } from "../backend";
 
 const LOOK_SPEED = 0.0042;
 const WALK_SPEED = 6;
 const RUN_SPEED = 16;
-const WORLD_RADIUS = 80;
-const FLOOR = -3.4;
+/** Vol libre : on peut aller partout, au-dessus comme en dessous du sol, dans une grande bulle. */
+const WORLD_RADIUS = 160;
+/** Sans micro (version en ligne), la barre espace sert à monter. */
+const SPACE_TO_FLY = !backend.voiceInput;
 
 function isTyping(e: KeyboardEvent) {
   const t = e.target;
@@ -81,10 +84,10 @@ export function Navigator({ reduced }: { reduced: boolean }) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (isTyping(e)) return;
       st.keys.add(e.code);
-      if (/^(Arrow|KeyW|KeyA|KeyS|KeyD|KeyQ|KeyE)/.test(e.code)) {
+      if (/^(Arrow|KeyW|KeyA|KeyS|KeyD|KeyQ|KeyE|KeyC|PageUp|PageDown)/.test(e.code) || (SPACE_TO_FLY && e.code === "Space")) {
         st.fly = null;
         nav.moved = true;
-        if (e.code.startsWith("Arrow")) e.preventDefault();
+        if (e.code.startsWith("Arrow") || e.code.startsWith("Page") || e.code === "Space") e.preventDefault();
       }
     };
     const onKeyUp = (e: KeyboardEvent) => st.keys.delete(e.code);
@@ -149,7 +152,9 @@ export function Navigator({ reduced }: { reduced: boolean }) {
       const r =
         (k.has("KeyD") || k.has("ArrowRight") ? 1 : 0) - (k.has("KeyA") || k.has("ArrowLeft") ? 1 : 0) + navInput.x;
       // Sur un clavier AZERTY, KeyQ/KeyE sont les touches A et E.
-      const u = (k.has("KeyE") ? 1 : 0) - (k.has("KeyQ") ? 1 : 0);
+      const up = k.has("KeyE") || k.has("PageUp") || (SPACE_TO_FLY && k.has("Space"));
+      const down = k.has("KeyQ") || k.has("KeyC") || k.has("PageDown");
+      const u = (up ? 1 : 0) - (down ? 1 : 0) + navInput.z;
       const speed = k.has("ShiftLeft") || k.has("ShiftRight") ? RUN_SPEED : WALK_SPEED;
       const target = fwd.multiplyScalar(f).add(right.multiplyScalar(r)).add(new Vector3(0, u, 0)).multiplyScalar(speed);
       st.vel.lerp(target, 1 - Math.exp(-dt * 6));
@@ -163,7 +168,6 @@ export function Navigator({ reduced }: { reduced: boolean }) {
       );
 
       if (st.pos.length() > WORLD_RADIUS) st.pos.setLength(WORLD_RADIUS);
-      if (st.pos.y < FLOOR) st.pos.y = FLOOR;
     }
 
     camera.position.copy(st.pos);

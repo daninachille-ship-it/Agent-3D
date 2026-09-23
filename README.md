@@ -122,15 +122,15 @@ Le bouton **🔊** coupe ou rétablit la voix. S'il devient **Réactiver la voix
 
 ### Se déplacer dans le monde
 
-Phare vit dans un espace 3D que tu peux explorer. Tes conversations forment une spirale qui s'enfonce dans la profondeur : **plus tu avances, plus tu remontes dans le temps**. Un fil lumineux relie chaque conversation à Phare, et un fil en pointillés les relie dans l'ordre.
+Phare vit dans un espace 3D que tu peux explorer librement, au-dessus comme en dessous du sol. Tes conversations forment une spirale qui s'enfonce dans la profondeur : **plus tu avances, plus tu remontes dans le temps**. Un fil lumineux relie chaque conversation à Phare, et un fil en pointillés les relie dans l'ordre.
 
 | Action | Ordinateur | Téléphone |
 | --- | --- | --- |
 | Regarder autour | Glisser avec la souris | Glisser avec un doigt |
 | Avancer, reculer, pas de côté | `Z` `Q` `S` `D` ou les flèches | Joystick en bas à gauche |
 | Foncer | Molette | Pincer / écarter deux doigts |
-| Monter, descendre | `E` / `A` | |
-| Courir | `Maj` maintenue | |
+| Monter, descendre | `E` ou `Espace` / `A` ou `C` (`Espace` sert au micro dans la version installée) | Boutons ▲ ▼ à maintenir |
+| Aller vite | `Maj` maintenue | |
 | Aller à une conversation | Clic sur la bulle ou son étiquette | Toucher la bulle |
 | Revenir devant Phare | Bouton **Revenir à Phare** | Pareil |
 | Plein écran | Bouton **Plein écran** (Échap pour sortir) | Bouton **Plein écran** (Android ; pas sur iPhone) |

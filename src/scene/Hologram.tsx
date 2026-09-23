@@ -293,13 +293,15 @@ export function Hologram({ state, reduced }: Props) {
       for (let i = from; i < BAND_COUNT; i++) highs += audioBus.micBands[i];
       input = Math.min(1, audioBus.micLevel * 0.8 + (highs / (BAND_COUNT - from)) * 0.6);
     } else if (state === "speaking") {
-      // Une impulsion par mot prononcé, qui retombe vite : Phare bouge au rythme des mots.
-      input = Math.exp(-(now - audioBus.lastWordAt) / 170);
+      // Une impulsion par mot prononcé, qui retombe en douceur : Phare bouge au rythme des mots.
+      input = Math.exp(-(now - audioBus.lastWordAt) / 260);
     }
     const kFast = 1 - Math.exp(-delta * 12);
     const kSlow = 1 - Math.exp(-delta * 3);
-    // Attaque immédiate sur chaque mot, retombée douce.
-    level.current = input > level.current ? input : level.current + (input - level.current) * kFast;
+    // Montée rapide mais pas instantanée, retombée douce : un mouvement vivant, pas nerveux.
+    const kRise = 1 - Math.exp(-delta * 22);
+    const kFall = 1 - Math.exp(-delta * 5);
+    level.current += (input - level.current) * (input > level.current ? kRise : kFall);
     audioBus.level = level.current;
     const lv = level.current * amp;
 
@@ -331,11 +333,11 @@ export function Hologram({ state, reduced }: Props) {
         speedT = 0.9;
         break;
       case "speaking":
-        glowT = 1.05 + lv * 0.7;
-        orbitT = 0.7 + lv * 0.8;
-        spreadT = 1 + lv * 0.14;
-        ampT = 0.3 + lv * 1.0;
-        speedT = 0.6 + lv * 0.8;
+        glowT = 1.05 + lv * 0.55;
+        orbitT = 0.5 + lv * 0.3;
+        spreadT = 1 + lv * 0.09;
+        ampT = 0.28 + lv * 0.6;
+        speedT = 0.35 + lv * 0.25;
         break;
     }
     if (reduced) {

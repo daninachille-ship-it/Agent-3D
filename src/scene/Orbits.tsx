@@ -56,7 +56,7 @@ export function Orbits({ state, reduced }: { state: PhareState; reduced: boolean
     const lv = audioBus.level;
 
     // Vitesse des anneaux selon l'état : ils s'emballent quand Phare réfléchit.
-    const target = (state === "thinking" ? 4 : state === "listening" ? 1.8 : 1) + lv * 3;
+    const target = (state === "thinking" ? 3 : state === "listening" ? 1.6 : 1) + lv * 1.2;
     speed.current += (target - speed.current) * (1 - Math.exp(-dt * 2));
     const k = reduced ? 0.25 : 1;
 
@@ -70,7 +70,9 @@ export function Orbits({ state, reduced }: { state: PhareState; reduced: boolean
     });
 
     // Une nouvelle onde à chaque mot de Phare (ou pic de ta voix).
-    const wordNow = audioBus.lastWordAt !== lastWord.current && state === "speaking";
+    // Une onde par mot, mais jamais plus de trois par seconde : lisible, pas frénétique.
+    const wordNow =
+      audioBus.lastWordAt !== lastWord.current && state === "speaking" && audioBus.lastWordAt - lastWord.current > 320;
     const micPeak = state === "listening" && lv > 0.55 && performance.now() - lastWord.current > 260;
     if (!reduced && (wordNow || micPeak)) {
       lastWord.current = wordNow ? audioBus.lastWordAt : performance.now();

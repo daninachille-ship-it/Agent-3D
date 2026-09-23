@@ -18,14 +18,15 @@ const PORTALS = [
  */
 export function World({ reduced }: { reduced: boolean }) {
   const dust = useMemo(() => {
-    const n = 2200;
+    const n = 3000;
     const pos = new Float32Array(n * 3);
     let seed = 11;
     const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
     for (let i = 0; i < n; i++) {
-      pos[i * 3] = (rnd() - 0.5) * 110;
-      pos[i * 3 + 1] = -3.5 + rnd() * 30;
-      pos[i * 3 + 2] = 30 - rnd() * 120;
+      // Au-dessus ET en dessous du sol : le vol est libre dans toutes les directions.
+      pos[i * 3] = (rnd() - 0.5) * 150;
+      pos[i * 3 + 1] = -30 + rnd() * 62;
+      pos[i * 3 + 2] = 40 - rnd() * 170;
     }
     const g = new BufferGeometry();
     g.setAttribute("position", new BufferAttribute(pos, 3));

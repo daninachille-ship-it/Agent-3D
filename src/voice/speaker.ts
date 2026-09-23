@@ -14,9 +14,23 @@ const supported = typeof window !== "undefined" && "speechSynthesis" in window;
 /** Délai au-delà duquel une phrase qui n'a pas commencé est considérée comme bloquée. */
 const START_TIMEOUT_MS = 3000;
 
-/** Durée estimée d'un mot prononcé (ms) : plus il est long, plus il dure. */
+/**
+ * Vitesse de la voix, en millisecondes par caractère (à vitesse 1). Valeur de départ prudente,
+ * puis recalée sur la durée réelle de chaque phrase prononcée : l'animation suit TA voix.
+ */
+let msPerChar = 78;
+
+/** Durée estimée d'un mot prononcé (ms) : proportionnelle à sa longueur, espace compris. */
 function wordDuration(word: string, rate: number): number {
-  return (110 + word.replace(/[^\p{L}\p{N}]/gu, "").length * 58) / rate;
+  return ((word.replace(/[^\p{L}\p{N}]/gu, "").length + 1.3) * msPerChar) / rate;
+}
+
+/** Après une phrase lue sans événements "mot" : on apprend la vraie vitesse de la voix. */
+function calibrate(text: string, elapsedMs: number, rate: number) {
+  const chars = text.replace(/\s+/g, " ").length;
+  if (chars < 12 || elapsedMs < 400) return;
+  const measured = (elapsedMs * rate) / chars;
+  msPerChar = Math.min(140, Math.max(45, msPerChar * 0.5 + measured * 0.5));
 }
 
 /* --- État de la voix, partagé avec l'interface --- */
@@ -288,8 +302,10 @@ export class Speaker {
       });
     }, START_TIMEOUT_MS);
 
+    let startedAt = 0;
     u.onstart = () => {
       began = true;
+      startedAt = performance.now();
       window.clearTimeout(watchdog);
       setStatus("ok");
       this.markStarted();
@@ -306,6 +322,7 @@ export class Speaker {
     };
     u.onend = () => {
       window.clearTimeout(watchdog);
+      if (began && !realBoundaries) calibrate(text, performance.now() - startedAt, this.rate);
       end();
     };
     u.onerror = (e) => {

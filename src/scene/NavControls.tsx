@@ -53,6 +53,30 @@ function Joystick() {
   );
 }
 
+/** Boutons ▲ ▼ à maintenir pour monter ou descendre (téléphone). */
+function Lift() {
+  const hold = (dir: number) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      navInput.z = dir;
+      nav.moved = true;
+    },
+    onPointerUp: () => (navInput.z = 0),
+    onPointerCancel: () => (navInput.z = 0),
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  });
+  return (
+    <div className="lift">
+      <button className="lift-btn" aria-label="Monter (maintenir)" {...hold(1)}>
+        ▲
+      </button>
+      <button className="lift-btn" aria-label="Descendre (maintenir)" {...hold(-1)}>
+        ▼
+      </button>
+    </div>
+  );
+}
+
 /** Plein écran : proposé seulement là où le navigateur l'autorise (pas sur iPhone, par exemple). */
 function useFullscreen() {
   const supported = typeof document !== "undefined" && !!document.fullscreenEnabled;
@@ -165,7 +189,7 @@ export function NavControls() {
             <>
               Glisse pour regarder autour.
               <br />
-              Joystick pour avancer, pince pour foncer.
+              Joystick pour avancer, ▲ ▼ pour monter ou descendre, pince pour foncer.
               <br />
               Plus loin = plus ancien.
             </>
@@ -178,7 +202,8 @@ export function NavControls() {
               <kbd>S</kbd>
               <kbd>D</kbd> ou flèches pour avancer, molette pour foncer,
               <br />
-              <kbd>A</kbd>/<kbd>E</kbd> pour descendre/monter, <kbd>Maj</kbd> pour courir.
+              <kbd>E</kbd> ou <kbd>Espace</kbd> pour monter, <kbd>A</kbd> ou <kbd>C</kbd> pour descendre,{" "}
+              <kbd>Maj</kbd> pour aller vite.
               <br />
               Plus loin = plus ancien.
             </>
@@ -186,6 +211,7 @@ export function NavControls() {
         </p>
       </div>
       {COARSE && <Joystick />}
+      {COARSE && <Lift />}
     </>
   );
 }
