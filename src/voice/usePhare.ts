@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { audioBus } from "./audioBus";
 import { canAnalyseMic, startMic, stopMic } from "./mic";
 import { Speaker } from "./speaker";
+import { backend } from "../backend";
 import {
   afterWakeWord,
   createRecognition,
@@ -101,37 +102,20 @@ export function usePhare() {
       speakerRef.current = speaker;
 
       try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-          signal: controller.signal,
-        });
-        if (!res.ok || !res.body) {
-          const data = (await res.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(data?.error ?? `Le serveur a répondu ${res.status}.`);
-        }
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
         let full = "";
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          full += chunk;
-          setAnswerText(full);
-          speaker.push(chunk);
-        }
+        await backend.chat(text, {
+          signal: controller.signal,
+          onDelta: (delta) => {
+            full += delta;
+            setAnswerText(full);
+            speaker.push(delta);
+          },
+        });
         speaker.finish();
         if (!Speaker.supported) finishSpeaking();
       } catch (err) {
         if (controller.signal.aborted) return;
-        const msg =
-          err instanceof TypeError
-            ? "Je n'arrive pas à joindre mon serveur. Il est bien lancé ?"
-            : err instanceof Error
-              ? err.message
-              : "Erreur inconnue.";
+        const msg = err instanceof Error ? err.message : "Erreur inconnue.";
         setError(msg);
         speaker.push(msg + " ");
         speaker.finish();
@@ -145,7 +129,7 @@ export function usePhare() {
   // --- Appuyer pour parler ---------------------------------------------------
 
   const pressStart = useCallback(() => {
-    if (!recognitionSupported) return;
+    if (!recognitionSupported || !backend.voiceInput) return;
     // Interrompre Phare s'il parle ou réfléchit.
     fetchRef.current?.abort();
     speakerRef.current?.cancel();
@@ -297,7 +281,7 @@ export function usePhare() {
     setUserText("");
     setAnswerText("");
     try {
-      await fetch("/api/conversations/new", { method: "POST" });
+      await backend.newConversation();
       setAnswerText("Nouvelle conversation. Je t'écoute.");
     } catch {
       setError("Impossible de joindre le serveur.");
@@ -310,9 +294,8 @@ export function usePhare() {
       setUserText("");
       setError(null);
       try {
-        const res = await fetch(`/api/conversations/${encodeURIComponent(id)}/resume`, { method: "POST" });
-        if (!res.ok) throw new Error();
-        const conv = (await res.json()) as { messages: { role: string; content: string }[] };
+        const conv = await backend.resumeConversation(id);
+        if (!conv) throw new Error();
         const lastAnswer = [...conv.messages].reverse().find((m) => m.role === "assistant")?.content;
         const lastQuestion = [...conv.messages].reverse().find((m) => m.role === "user")?.content;
         setUserText(lastQuestion ?? "");
@@ -349,6 +332,6 @@ export function usePhare() {
     ask,
     newConversation,
     resumeConversation,
-    supported: recognitionSupported,
+    supported: recognitionSupported && backend.voiceInput,
   };
 }

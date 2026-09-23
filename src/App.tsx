@@ -5,6 +5,10 @@ import { useReducedMotion } from "./hooks/useReducedMotion";
 import { useHealth } from "./hooks/useHealth";
 import { useConversations } from "./hooks/useConversations";
 import { audioBus } from "./voice/audioBus";
+import { backend } from "./backend";
+
+/** Version publiée sur claude.ai : pas de micro (bloqué par la page), on écrit à Phare. */
+const ONLINE = backend.kind === "claude";
 
 const STATE_LABEL: Record<PhareState, string> = {
   idle: "En veille",
@@ -127,13 +131,18 @@ export function App() {
             <code>npm run dev</code>.
           </p>
         )}
-        {!window.isSecureContext && (
+        {health === "no-claude" && (
+          <p className="error">
+            Phare n'arrive pas à joindre Claude. Ouvre ce lien depuis claude.ai, connecté à ton compte, puis recharge.
+          </p>
+        )}
+        {!ONLINE && !window.isSecureContext && (
           <p className="error">
             Le micro ne marche que sur une page sécurisée. Sur téléphone, lance <code>npm run dev:mobile</code> et ouvre
             l'adresse en https.
           </p>
         )}
-        {!phare.supported && (
+        {!ONLINE && !phare.supported && (
           <p className="error">
             La reconnaissance vocale n'est pas disponible dans ce navigateur. Utilise Google Chrome sur ordinateur ou sur
             Android. Tu peux quand même écrire à Phare ci-dessous.
@@ -142,6 +151,11 @@ export function App() {
       </section>
 
       <footer className="controls">
+        {ONLINE ? (
+          <button className="secondary" onClick={() => void phare.newConversation().then(refresh)}>
+            Nouvelle conv.
+          </button>
+        ) : (
         <button
           className="secondary"
           onClick={() => phare.setWakeEnabled(!phare.wakeEnabled)}
@@ -151,7 +165,15 @@ export function App() {
         >
           <span className={`switch ${phare.wakeEnabled ? "on" : ""}`} aria-hidden /> « Phare »
         </button>
+        )}
 
+        {ONLINE ? (
+          <button className="talk" type="submit" form="ask-form" aria-label="Envoyer" disabled={!draft.trim()}>
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden>
+              <path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12.6 2-12.6 2z" />
+            </svg>
+          </button>
+        ) : (
         <button
           className={`talk ${state === "listening" ? "active" : ""}`}
           onPointerDown={(e) => {
@@ -172,6 +194,7 @@ export function App() {
             />
           </svg>
         </button>
+        )}
 
         {busy ? (
           <button className="secondary stop" onClick={stop} aria-label="Couper (Échap)">
@@ -180,6 +203,8 @@ export function App() {
             </svg>
             Couper
           </button>
+        ) : ONLINE ? (
+          <span />
         ) : (
           <button className="secondary" onClick={() => void phare.newConversation().then(refresh)}>
             Nouvelle conv.
@@ -188,6 +213,7 @@ export function App() {
       </footer>
 
       <form
+        id="ask-form"
         className="type"
         onSubmit={(e) => {
           e.preventDefault();
@@ -201,13 +227,18 @@ export function App() {
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Ou écris à Phare…"
+          id="ask-input"
+          placeholder={ONLINE ? "Écris à Phare…" : "Ou écris à Phare…"}
           aria-label="Écrire à Phare"
           enterKeyHint="send"
         />
       </form>
 
-      <p className="hint">Maintiens le micro ou la barre espace pour parler · Échap pour couper</p>
+      <p className="hint">
+        {ONLINE
+          ? "Phare te répond à voix haute · Échap pour couper"
+          : "Maintiens le micro ou la barre espace pour parler · Échap pour couper"}
+      </p>
     </main>
   );
 }

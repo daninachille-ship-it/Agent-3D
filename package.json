@@ -14,7 +14,8 @@
     "dev:mobile": "concurrently -n serveur,site -c yellow,cyan \"npm:dev:server\" \"vite --host --mode mobile\"",
     "build": "tsc --noEmit && vite build",
     "start": "tsx server/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:claude": "node scripts/build-claude.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -12,6 +12,19 @@ Une sphère holographique cyan, avec un cœur de lumière et des traînées liqu
 
 ---
 
+## Version en ligne (sans rien installer)
+
+Phare est aussi publié comme page privée sur claude.ai : <https://claude.ai/artifact/PhfKL2JYjaafKBrbUvoBPC>
+
+- Ouvre le lien en étant connecté à ton compte claude.ai. À la première question, claude.ai te demande d'autoriser Phare à utiliser Claude : accepte.
+- Les réponses sont comptées sur ton abonnement claude.ai, pas sur une clé API.
+- Tes conversations sont enregistrées dans un espace privé de la page, que personne d'autre ne peut lire.
+- **Limite :** claude.ai bloque le micro dans ses pages. En ligne, tu **écris** à Phare et il te **répond à voix haute**. Pour lui parler, utilise la version installée ci-dessous.
+
+Pour republier la page après une modification : `npm run build:claude`, qui fabrique `dist-claude/phare.html`.
+
+---
+
 ## Installation pas à pas
 
 Compte 10 minutes la première fois. Tout se fait dans le **Terminal** (Mac) ou **PowerShell** (Windows).
@@ -157,11 +170,14 @@ Sur iPhone, Safari et Chrome ne proposent pas (encore) la reconnaissance vocale 
 server/            petit serveur Node/Express (garde la clé API)
   index.ts         route /api/chat : envoie la question à Claude et renvoie la réponse en flux
   memory.ts        historique des conversations dans data/conversations.json
-  prompt.ts        la personnalité de Phare
+shared/
+  prompt.ts        la personnalité de Phare (commune au serveur et à la version en ligne)
 scripts/
   setup.mjs        npm run setup : enregistre la clé API dans .env
   check.mjs        vérifications automatiques avant npm run dev
+  build-claude.mjs npm run build:claude : fabrique la version en ligne (un seul fichier HTML)
 src/
+  backend/         d'où viennent les réponses : serveur local (server.ts) ou claude.ai (claude.ts)
   App.tsx          l'interface (boutons, sous-titres, clavier)
   scene/           la scène 3D (react-three-fiber) : Hologram (sphère, cœur, traînées),
                    ConversationNodes + NodeLabels (bulles de conversation), CameraRig, Scene (bloom)
