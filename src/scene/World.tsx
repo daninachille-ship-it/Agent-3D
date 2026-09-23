@@ -1,7 +1,8 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Grid, Stars } from "@react-three/drei";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Group, Points } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Group, MeshBasicMaterial, Points } from "three";
+import { audioBus } from "../voice/audioBus";
 
 /** Profondeurs des portails : ils jalonnent la spirale du temps. */
 const PORTALS = [
@@ -33,12 +34,23 @@ export function World({ reduced }: { reduced: boolean }) {
   const dustRef = useRef<Points>(null);
   const portals = useRef<Group>(null);
 
-  useFrame((_, dt) => {
-    if (reduced) return;
-    if (dustRef.current) dustRef.current.rotation.y += dt * 0.004;
+  const glow = useRef(0);
+
+  useFrame(({ clock }, dt) => {
+    // Les portails s'illuminent avec la voix (la tienne ou celle de Phare).
+    glow.current += (audioBus.level - glow.current) * (1 - Math.exp(-dt * 6));
     portals.current?.children.forEach((p, i) => {
-      p.rotation.z += dt * (i % 2 ? -0.05 : 0.04);
+      if (!reduced) {
+        p.rotation.z += dt * (i % 2 ? -0.22 : 0.16);
+        p.position.y = 2 + Math.sin(clock.elapsedTime * 0.4 + i * 2) * 0.6;
+      }
+      p.traverse((o) => {
+        const m = (o as { material?: MeshBasicMaterial }).material;
+        if (m?.userData.base !== undefined) m.opacity = m.userData.base * (1 + glow.current * 1.5);
+      });
     });
+    if (reduced) return;
+    if (dustRef.current) dustRef.current.rotation.y += dt * 0.01;
   });
 
   return (
@@ -78,11 +90,11 @@ export function World({ reduced }: { reduced: boolean }) {
           <group key={i} position={[0, 2, p.z]} rotation={[p.tilt, 0, 0]}>
             <mesh>
               <torusGeometry args={[p.r, 0.05, 8, 160]} />
-              <meshBasicMaterial color="#5cd0ff" transparent opacity={0.45} depthWrite={false} />
+              <meshBasicMaterial color="#5cd0ff" transparent opacity={0.45} depthWrite={false} userData={{ base: 0.45 }} />
             </mesh>
             <mesh>
               <torusGeometry args={[p.r * 1.06, 0.02, 6, 160]} />
-              <meshBasicMaterial color="#bff2ff" transparent opacity={0.25} depthWrite={false} />
+              <meshBasicMaterial color="#bff2ff" transparent opacity={0.25} depthWrite={false} userData={{ base: 0.25 }} />
             </mesh>
             {/* Graduations autour du portail, comme un cadran. */}
             {Array.from({ length: 36 }, (_, k) => {

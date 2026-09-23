@@ -293,17 +293,14 @@ export function Hologram({ state, reduced }: Props) {
       for (let i = from; i < BAND_COUNT; i++) highs += audioBus.micBands[i];
       input = Math.min(1, audioBus.micLevel * 0.8 + (highs / (BAND_COUNT - from)) * 0.6);
     } else if (state === "speaking") {
-      const sinceWord = now - audioBus.lastWordAt;
-      const wordEnv = Math.exp(-sinceWord / 160);
-      const synthetic =
-        !audioBus.hasWordEvents || sinceWord > 900
-          ? Math.max(0, Math.sin(t * 8.5)) * (0.55 + 0.45 * Math.sin(t * 2.3 + 1))
-          : 0;
-      input = Math.max(wordEnv, synthetic);
+      // Une impulsion par mot prononcé, qui retombe vite : Phare bouge au rythme des mots.
+      input = Math.exp(-(now - audioBus.lastWordAt) / 170);
     }
     const kFast = 1 - Math.exp(-delta * 12);
     const kSlow = 1 - Math.exp(-delta * 3);
-    level.current += (input - level.current) * kFast;
+    // Attaque immédiate sur chaque mot, retombée douce.
+    level.current = input > level.current ? input : level.current + (input - level.current) * kFast;
+    audioBus.level = level.current;
     const lv = level.current * amp;
 
     // 2. Cibles par état.
@@ -334,11 +331,11 @@ export function Hologram({ state, reduced }: Props) {
         speedT = 0.9;
         break;
       case "speaking":
-        glowT = 1.05 + lv * 0.45;
-        orbitT = 0.6;
-        spreadT = 1 + lv * 0.08;
-        ampT = 0.28 + lv * 0.7;
-        speedT = 0.5;
+        glowT = 1.05 + lv * 0.7;
+        orbitT = 0.7 + lv * 0.8;
+        spreadT = 1 + lv * 0.14;
+        ampT = 0.3 + lv * 1.0;
+        speedT = 0.6 + lv * 0.8;
         break;
     }
     if (reduced) {
@@ -378,7 +375,10 @@ export function Hologram({ state, reduced }: Props) {
       dropsRef.current.scale.setScalar(spread.current);
     }
 
-    if (root.current) root.current.rotation.y = reduced ? 0 : Math.sin(t * 0.12) * 0.2;
+    if (root.current) {
+      root.current.rotation.y = reduced ? 0 : Math.sin(t * 0.12) * 0.2;
+      root.current.scale.setScalar(1 + lv * (state === "speaking" ? 0.06 : 0.04));
+    }
     if (blobRef.current) blobRef.current.rotation.z = t * 0.08 * amp;
     if (haloRef.current) {
       const s = 1.1 + glow.current * 0.5 + lv * 0.6;

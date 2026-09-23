@@ -4,6 +4,7 @@ import { usePhare, type PhareState } from "./voice/usePhare";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 import { useHealth } from "./hooks/useHealth";
 import { useConversations } from "./hooks/useConversations";
+import { useVoiceStatus } from "./hooks/useVoiceStatus";
 import { audioBus } from "./voice/audioBus";
 import { backend } from "./backend";
 
@@ -40,6 +41,7 @@ export function App() {
   const { state, pressStart, pressEnd, stop } = phare;
   const answerRef = useRef<HTMLParagraphElement>(null);
   const health = useHealth();
+  const voiceStatus = useVoiceStatus();
   const { conversations, refresh } = useConversations();
 
   // Rafraîchit les bulles de conversation quand Phare a fini de répondre.
@@ -48,12 +50,17 @@ export function App() {
   }, [state, health, refresh]);
   const [draft, setDraft] = useState("");
 
-  // En aperçu "écoute", on simule une voix pour faire réagir le nuage.
+  // En aperçu "écoute" ou "parole", on simule une voix pour voir Phare réagir.
   useEffect(() => {
-    if (previewState !== "listening") return;
-    const id = window.setInterval(() => {
-      if (Math.random() > 0.3) audioBus.fakeMicKick = 0.5 + Math.random() * 0.5;
-    }, 180);
+    if (previewState !== "listening" && previewState !== "speaking") return;
+    const id = window.setInterval(
+      () => {
+        if (Math.random() < 0.3) return;
+        if (previewState === "listening") audioBus.fakeMicKick = 0.5 + Math.random() * 0.5;
+        else audioBus.lastWordAt = performance.now();
+      },
+      previewState === "listening" ? 180 : 320,
+    );
     return () => window.clearInterval(id);
   }, []);
 
@@ -129,6 +136,13 @@ export function App() {
           <p className="error">
             Il manque la clé API. Dans le terminal : <code>Ctrl + C</code>, puis <code>npm run setup</code>, puis{" "}
             <code>npm run dev</code>.
+          </p>
+        )}
+        {voiceStatus === "blocked" && (
+          <p className="note">
+            Je n'arrive pas à parler ici : le son est bloqué par le navigateur. Touche « Réactiver la voix » en haut à
+            droite ; si tu n'entends toujours rien, ouvre Phare dans Chrome et vérifie que le téléphone n'est pas en mode
+            silencieux.
           </p>
         )}
         {health === "no-claude" && (

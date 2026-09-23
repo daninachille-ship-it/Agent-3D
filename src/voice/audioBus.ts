@@ -12,8 +12,8 @@ export const audioBus = {
   micBands: new Float32Array(BAND_COUNT),
   /** Instant (performance.now) du dernier mot prononcé par la synthèse vocale */
   lastWordAt: 0,
-  /** Vrai si la synthèse a déjà émis des événements "mot" (certaines voix n'en émettent pas) */
-  hasWordEvents: false,
+  /** Intensité actuelle de la voix (la tienne ou celle de Phare), 0..1, lissée : lue par tout le décor. */
+  level: 0,
   /** Impulsion "simulée" du micro quand l'analyse réelle n'est pas disponible */
   fakeMicKick: 0,
 };

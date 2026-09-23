@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { nav, navInput } from "./nav";
+import { Speaker, voice } from "../voice/speaker";
+import { useVoiceStatus } from "../hooks/useVoiceStatus";
 
 const COARSE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
@@ -68,6 +70,30 @@ function useFullscreen() {
   return { supported, active, toggle };
 }
 
+/** Couper / rétablir la voix. Rétablir fait dire une courte phrase : ça débloque le son et permet de vérifier. */
+function VoiceToggle() {
+  const status = useVoiceStatus();
+  const on = status === "ok" || status === "unknown";
+  const toggle = () => {
+    if (on) {
+      voice.setMuted(true);
+      return;
+    }
+    voice.setMuted(false);
+    const test = new Speaker(
+      () => {},
+      () => {},
+    );
+    test.push("Je suis là, Achille. ");
+    test.finish();
+  };
+  return (
+    <button className={`secondary ${status === "blocked" ? "warn" : ""}`} onClick={toggle} aria-pressed={on}>
+      {status === "blocked" ? "🔈 Réactiver la voix" : on ? "🔊 Voix" : "🔇 Voix coupée"}
+    </button>
+  );
+}
+
 /** Aide à la navigation (qui s'efface une fois qu'on a bougé), plein écran et retour vers Phare. */
 export function NavControls() {
   const [faded, setFaded] = useState(false);
@@ -87,6 +113,7 @@ export function NavControls() {
     <>
       <div className="nav-ui">
         <div className="nav-buttons">
+          <VoiceToggle />
           {fullscreen.supported && (
             <button className="secondary" onClick={fullscreen.toggle} aria-pressed={fullscreen.active}>
               {fullscreen.active ? "⤡ Quitter le plein écran" : "⤢ Plein écran"}

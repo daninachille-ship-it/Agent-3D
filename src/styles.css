@@ -114,6 +114,17 @@ h1 {
   scrollbar-width: none;
 }
 
+.note {
+  color: #ffd9a0;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.secondary.warn {
+  border-color: rgba(255, 217, 160, 0.6);
+  color: #ffd9a0;
+}
+
 .error {
   color: var(--error);
   font-family: system-ui, sans-serif;

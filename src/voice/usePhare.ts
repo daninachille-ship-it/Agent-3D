@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { audioBus } from "./audioBus";
 import { canAnalyseMic, startMic, stopMic } from "./mic";
-import { Speaker } from "./speaker";
+import { Speaker, voice } from "./speaker";
 import { backend } from "../backend";
 import {
   afterWakeWord,
@@ -81,6 +81,8 @@ export function usePhare() {
 
   const ask = useCallback(
     async (text: string) => {
+      // Appelé depuis un clic (Envoyer) : c'est le moment d'autoriser la voix.
+      voice.unlock();
       dropRecognition();
       setError(null);
       setUserText(text);
@@ -112,7 +114,6 @@ export function usePhare() {
           },
         });
         speaker.finish();
-        if (!Speaker.supported) finishSpeaking();
       } catch (err) {
         if (controller.signal.aborted) return;
         const msg = err instanceof Error ? err.message : "Erreur inconnue.";
@@ -130,6 +131,7 @@ export function usePhare() {
 
   const pressStart = useCallback(() => {
     if (!recognitionSupported || !backend.voiceInput) return;
+    voice.unlock();
     // Interrompre Phare s'il parle ou réfléchit.
     fetchRef.current?.abort();
     speakerRef.current?.cancel();

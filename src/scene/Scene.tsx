@@ -8,6 +8,7 @@ import { NodeLabels } from "./NodeLabels";
 import { Navigator } from "./Navigator";
 import { NavControls } from "./NavControls";
 import { World } from "./World";
+import { Orbits } from "./Orbits";
 import { homeFor, nav } from "./nav";
 import { nodeScreen } from "./nodeScreen";
 import type { PhareState } from "../voice/usePhare";
@@ -50,6 +51,7 @@ export function Scene({ state, reduced, conversations, onResume }: Props) {
 
         <World reduced={reduced} />
         <Hologram state={state} reduced={reduced} />
+        <Orbits state={state} reduced={reduced} />
         <ConversationNodes
           conversations={conversations}
           state={state}
