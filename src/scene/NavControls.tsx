@@ -50,9 +50,28 @@ function Joystick() {
   );
 }
 
-/** Aide à la navigation (qui s'efface une fois qu'on a bougé) et bouton de retour vers Phare. */
+/** Plein écran : proposé seulement là où le navigateur l'autorise (pas sur iPhone, par exemple). */
+function useFullscreen() {
+  const supported = typeof document !== "undefined" && !!document.fullscreenEnabled;
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    const onChange = () => setActive(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+  const toggle = () => {
+    const req = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    req?.catch(() => {
+      /* refusé par le navigateur ou l'application : le bouton ne fait simplement rien */
+    });
+  };
+  return { supported, active, toggle };
+}
+
+/** Aide à la navigation (qui s'efface une fois qu'on a bougé), plein écran et retour vers Phare. */
 export function NavControls() {
   const [faded, setFaded] = useState(false);
+  const fullscreen = useFullscreen();
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -67,9 +86,16 @@ export function NavControls() {
   return (
     <>
       <div className="nav-ui">
-        <button className="secondary" onClick={() => nav.home()}>
-          ◎ Revenir à Phare
-        </button>
+        <div className="nav-buttons">
+          {fullscreen.supported && (
+            <button className="secondary" onClick={fullscreen.toggle} aria-pressed={fullscreen.active}>
+              {fullscreen.active ? "⤡ Quitter le plein écran" : "⤢ Plein écran"}
+            </button>
+          )}
+          <button className="secondary" onClick={() => nav.home()}>
+            ◎ Revenir à Phare
+          </button>
+        </div>
         <p className={`nav-help ${faded ? "faded" : ""}`} aria-hidden={faded}>
           {COARSE ? (
             <>

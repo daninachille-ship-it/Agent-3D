@@ -122,6 +122,7 @@ Phare vit dans un espace 3D que tu peux explorer. Tes conversations forment une 
 | Courir | `Maj` maintenue | |
 | Aller à une conversation | Clic sur la bulle ou son étiquette | Toucher la bulle |
 | Revenir devant Phare | Bouton **Revenir à Phare** | Pareil |
+| Plein écran | Bouton **Plein écran** (Échap pour sortir) | Bouton **Plein écran** (Android ; pas sur iPhone) |
 
 ### Aperçu des animations
 

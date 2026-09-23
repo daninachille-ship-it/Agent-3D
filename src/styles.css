@@ -363,6 +363,12 @@ code {
   gap: 8px;
   z-index: 2;
 }
+.nav-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
 .nav-help {
   max-width: 230px;
   margin: 0;
