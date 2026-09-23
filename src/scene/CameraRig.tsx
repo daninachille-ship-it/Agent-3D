@@ -1,18 +1,18 @@
 import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { MathUtils, PerspectiveCamera } from "three";
-import { EGG_HALF_HEIGHT, EGG_HALF_WIDTH } from "./Egg";
+import { HOLO_HALF_HEIGHT, HOLO_HALF_WIDTH } from "./Hologram";
 
 /**
- * Distance de caméra pour que l'œuf tienne à l'écran,
+ * Distance de caméra pour que l'hologramme tienne à l'écran,
  * et décalage vertical pour la placer au-dessus des sous-titres.
  */
 function framing(camera: PerspectiveCamera, aspect: number) {
   const tanHalf = Math.tan(MathUtils.degToRad(camera.fov / 2));
-  const byHeight = EGG_HALF_HEIGHT / 0.6 / tanHalf; // ~60 % de la hauteur
-  const byWidth = EGG_HALF_WIDTH / 0.75 / (tanHalf * aspect); // ~75 % de la largeur
+  const byHeight = HOLO_HALF_HEIGHT / 0.64 / tanHalf; // ~64 % de la hauteur
+  const byWidth = HOLO_HALF_WIDTH / 0.96 / (tanHalf * aspect); // presque toute la largeur
   const distance = Math.max(byHeight, byWidth);
-  // Centre de l'œuf remonté d'environ 12 % de la hauteur d'écran.
+  // Centre de l'hologramme remonté d'environ 12 % de la hauteur d'écran.
   const shift = 0.24 * tanHalf * distance;
   return { distance, shift };
 }

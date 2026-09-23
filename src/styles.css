@@ -2,10 +2,10 @@
   --bg: #071430;
   --ink: #f3ead6;
   --muted: #9aa7c2;
-  --accent: #b9ccff;
-  --accent-soft: rgba(169, 200, 255, 0.14);
+  --accent: #8fe0ff;
+  --accent-soft: rgba(92, 208, 255, 0.14);
   --panel: rgba(10, 20, 40, 0.55);
-  --line: rgba(169, 200, 255, 0.3);
+  --line: rgba(92, 208, 255, 0.3);
   --error: #ff9b8a;
   color-scheme: dark;
 }
@@ -286,4 +286,70 @@ code {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Étiquettes des bulles de conversation, posées sur la scène 3D */
+.node-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.node-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  font-family: system-ui, sans-serif;
+  white-space: nowrap;
+}
+.node-label.visible,
+.node-label.open,
+.node-label:focus-within {
+  opacity: 1;
+  z-index: 1;
+  pointer-events: auto;
+}
+.node-title {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 208, 255, 0.45);
+  background: rgba(6, 30, 60, 0.75);
+  color: #d8f7ff;
+  font-size: 12px;
+}
+.node-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(92, 208, 255, 0.35);
+  background: rgba(6, 30, 60, 0.85);
+  color: var(--muted);
+  font-size: 11px;
+}
+.node-details em {
+  color: #bff2ff;
+  font-style: normal;
+}
+.node-resume {
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #5cd0ff;
+  color: #041428;
+  font-weight: 600;
+  font-size: 12px;
 }

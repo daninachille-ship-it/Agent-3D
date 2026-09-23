@@ -1,14 +1,14 @@
 # Phare
 
 Ton assistant vocal personnel en 3D, façon Jarvis, en français.
-Une bulle en forme d'œuf, remplie d'un nuage lumineux, qui respire, t'écoute, réfléchit et te répond à voix haute.
+Une sphère holographique cyan, avec un cœur de lumière et des traînées liquides en orbite, qui respire, t'écoute, réfléchit et te répond à voix haute. Autour d'elle, tes conversations flottent comme des bulles reliées au cœur.
 
-![Phare en veille](docs/apercu.png)
+![Phare en train de réfléchir](docs/apercu.png)
 
-- **Veille** : la lumière au cœur du nuage respire lentement.
-- **Écoute** : le nuage s'agite et s'illumine au volume de ta voix.
-- **Réflexion** : un faisceau lumineux tourne autour de l'œuf et le nuage tourbillonne.
-- **Parole** : l'œuf pulse au rythme de la voix de Phare.
+- **Veille** : le cœur respire lentement, les traînées dérivent.
+- **Écoute** : la forme autour du cœur ondule et les traînées s'écartent au volume de ta voix.
+- **Réflexion** : un faisceau lumineux balaie la sphère, les traînées accélèrent, une étincelle file vers la conversation en cours.
+- **Parole** : la sphère pulse au rythme de la voix de Phare.
 
 ---
 
@@ -67,7 +67,7 @@ Le terminal affiche deux types de lignes, `[serveur]` et `[site]`. **Laisse cett
 
 Ouvre **Google Chrome** sur <http://localhost:5173>. La première fois, Chrome demande l'accès au micro : clique sur **Autoriser**.
 
-Si quelque chose cloche, un message rouge sous l'œuf te dit quoi faire.
+Si quelque chose cloche, un message rouge sous la sphère te dit quoi faire.
 
 Pour arrêter : `Ctrl + C` dans le terminal. Pour relancer plus tard : seulement l'étape 6.
 
@@ -86,10 +86,15 @@ Pour arrêter : `Ctrl + C` dans le terminal. Pour relancer plus tard : seulement
 
 Tu peux aussi couper Phare en reprenant la parole : appuie sur le micro pendant qu'il parle.
 
-### Mémoire
+### Mémoire et bulles de conversation
 
 Toutes les conversations sont enregistrées dans `data/conversations.json`, sur ton ordinateur.
 Phare se souvient des 30 derniers messages de la conversation en cours. **Nouvelle conv.** démarre une page blanche (l'ancienne reste dans le fichier).
+
+Tes 7 dernières conversations tournent autour de la sphère, chacune reliée au cœur par un fil lumineux. La plus grosse bulle, avec un fil en pointillés, est la conversation en cours.
+- Survole une bulle (ou touche-la sur téléphone) pour voir son sujet.
+- Clique dessus : tu vois la date et le nombre d'échanges, et le bouton **Reprendre** pour la continuer là où tu t'étais arrêté.
+- Au clavier : `Tab` passe d'une bulle à l'autre, `Entrée` l'ouvre.
 
 ### Aperçu des animations
 
@@ -130,7 +135,7 @@ Sur iPhone, Safari et Chrome ne proposent pas (encore) la reconnaissance vocale 
 | « Le serveur de Phare ne répond pas » | Le terminal a été fermé ou `npm run dev` n'est pas lancé. |
 | « Node.js … est trop ancien » | Installe la version LTS depuis <https://nodejs.org>. |
 | `npm` : commande introuvable | Node.js n'est pas installé (étape 1). Ferme et rouvre le terminal après l'installation. |
-| Page blanche ou œuf absent | Mets Chrome à jour. Vérifie que l'accélération matérielle est active (Paramètres → Système). |
+| Page blanche ou sphère absente | Mets Chrome à jour. Vérifie que l'accélération matérielle est active (Paramètres → Système). |
 | Rien ne se passe quand je parle | Essaie d'écrire une question dans le champ texte : si Phare répond, c'est le micro (voir ligne suivante). |
 | « Le micro est bloqué » | Clique sur l'icône à gauche de l'adresse dans Chrome → Micro → Autoriser, puis recharge. |
 | Phare n'a pas de voix française | Chrome utilise les voix du système. Sur Windows : Paramètres → Heure et langue → Voix → ajoute Français. |
@@ -158,8 +163,8 @@ scripts/
   check.mjs        vérifications automatiques avant npm run dev
 src/
   App.tsx          l'interface (boutons, sous-titres, clavier)
-  scene/           la scène 3D (react-three-fiber) : Egg (œuf nuageux, shader), Beam (faisceau),
-                   Halo, CameraRig, Scene (bloom)
+  scene/           la scène 3D (react-three-fiber) : Hologram (sphère, cœur, traînées),
+                   ConversationNodes + NodeLabels (bulles de conversation), CameraRig, Scene (bloom)
   voice/           la voix : reconnaissance (Web Speech API), mot d'activation,
                    synthèse vocale phrase par phrase, analyse du micro (AnalyserNode)
 ```
@@ -168,5 +173,5 @@ La réponse arrive en flux : Phare commence à parler dès la première phrase r
 
 ## Feuille de route
 
-- [x] **Phase 1** : œuf nuageux 3D animé, voix (appuyer pour parler + mot d'activation), réponses parlées, mémoire locale.
+- [x] **Phase 1** : sphère holographique 3D animée, bulles de conversation, voix (appuyer pour parler + mot d'activation), réponses parlées, mémoire locale.
 - [ ] **Phase 2** : connexion Gmail et Google Agenda (OAuth Google). Avant tout envoi de mail ou modification d'agenda, Phare lit à voix haute ce qu'il va faire et attend ta confirmation vocale.

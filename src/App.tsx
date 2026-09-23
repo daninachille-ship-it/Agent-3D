@@ -3,6 +3,7 @@ import { Scene } from "./scene/Scene";
 import { usePhare, type PhareState } from "./voice/usePhare";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 import { useHealth } from "./hooks/useHealth";
+import { useConversations } from "./hooks/useConversations";
 import { audioBus } from "./voice/audioBus";
 
 const STATE_LABEL: Record<PhareState, string> = {
@@ -35,6 +36,12 @@ export function App() {
   const { state, pressStart, pressEnd, stop } = phare;
   const answerRef = useRef<HTMLParagraphElement>(null);
   const health = useHealth();
+  const { conversations, refresh } = useConversations();
+
+  // Rafraîchit les bulles de conversation quand Phare a fini de répondre.
+  useEffect(() => {
+    if (state === "idle" && health === "ok") void refresh();
+  }, [state, health, refresh]);
   const [draft, setDraft] = useState("");
 
   // En aperçu "écoute", on simule une voix pour faire réagir le nuage.
@@ -85,7 +92,12 @@ export function App() {
   return (
     <main className={`app state-${shown}`}>
       <div className="scene">
-        <Scene state={shown} reduced={reduced} />
+        <Scene
+          state={shown}
+          reduced={reduced}
+          conversations={conversations}
+          onResume={(id) => void phare.resumeConversation(id).then(refresh)}
+        />
       </div>
 
       <header className="top">
@@ -169,7 +181,7 @@ export function App() {
             Couper
           </button>
         ) : (
-          <button className="secondary" onClick={() => void phare.newConversation()}>
+          <button className="secondary" onClick={() => void phare.newConversation().then(refresh)}>
             Nouvelle conv.
           </button>
         )}

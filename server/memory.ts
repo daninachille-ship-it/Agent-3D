@@ -54,6 +54,9 @@ export async function currentConversation(): Promise<Conversation> {
 
 export async function newConversation(): Promise<Conversation> {
   const store = await load();
+  // Inutile d'empiler des conversations vides.
+  const last = store.conversations.at(-1);
+  if (last && last.messages.length === 0) return last;
   const conv: Conversation = { id: randomUUID(), startedAt: new Date().toISOString(), messages: [] };
   store.conversations.push(conv);
   await persist(store);
@@ -68,6 +71,50 @@ export async function appendExchange(userText: string, assistantText: string): P
   await persist(store);
 }
 
-export async function listConversations(): Promise<Conversation[]> {
-  return (await load()).conversations;
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  startedAt: string;
+  updatedAt: string;
+  count: number;
+  current: boolean;
+}
+
+function titleOf(conv: Conversation): string {
+  const first = conv.messages.find((m) => m.role === "user")?.content.trim();
+  if (!first) return "Nouvelle conversation";
+  const clean = first.replace(/\s+/g, " ");
+  return clean.length > 42 ? `${clean.slice(0, 41).trimEnd()}…` : clean;
+}
+
+/** Les conversations les plus récentes d'abord, sans leurs messages. */
+export async function listConversations(limit = 7): Promise<ConversationSummary[]> {
+  const store = await load();
+  const current = store.conversations.at(-1);
+  return store.conversations
+    .filter((c) => c.messages.length > 0 || c === current)
+    .map((c) => ({
+      id: c.id,
+      title: titleOf(c),
+      startedAt: c.startedAt,
+      updatedAt: c.messages.at(-1)?.at ?? c.startedAt,
+      count: c.messages.length,
+      current: c === current,
+    }))
+    .sort((a, b) => (a.current ? -1 : b.current ? 1 : b.updatedAt.localeCompare(a.updatedAt)))
+    .slice(0, limit);
+}
+
+/** Reprend une ancienne conversation : elle redevient la conversation en cours. */
+export async function resumeConversation(id: string): Promise<Conversation | null> {
+  const store = await load();
+  const i = store.conversations.findIndex((c) => c.id === id);
+  if (i < 0) return null;
+  const [conv] = store.conversations.splice(i, 1);
+  // La conversation vide laissée derrière ne sert plus à rien.
+  const last = store.conversations.at(-1);
+  if (last && last.messages.length === 0) store.conversations.pop();
+  store.conversations.push(conv);
+  await persist(store);
+  return conv;
 }

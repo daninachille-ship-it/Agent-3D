@@ -304,6 +304,26 @@ export function usePhare() {
     }
   }, [stop]);
 
+  const resumeConversation = useCallback(
+    async (id: string) => {
+      stop();
+      setUserText("");
+      setError(null);
+      try {
+        const res = await fetch(`/api/conversations/${encodeURIComponent(id)}/resume`, { method: "POST" });
+        if (!res.ok) throw new Error();
+        const conv = (await res.json()) as { messages: { role: string; content: string }[] };
+        const lastAnswer = [...conv.messages].reverse().find((m) => m.role === "assistant")?.content;
+        const lastQuestion = [...conv.messages].reverse().find((m) => m.role === "user")?.content;
+        setUserText(lastQuestion ?? "");
+        setAnswerText(lastAnswer ? `On reprend. ${lastAnswer}` : "On reprend cette conversation.");
+      } catch {
+        setError("Impossible de reprendre cette conversation.");
+      }
+    },
+    [stop],
+  );
+
   // Nettoyage au démontage.
   useEffect(
     () => () => {
@@ -328,6 +348,7 @@ export function usePhare() {
     stop,
     ask,
     newConversation,
+    resumeConversation,
     supported: recognitionSupported,
   };
 }

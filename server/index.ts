@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import { PHARE_SYSTEM_PROMPT, nowContext } from "./prompt.js";
-import { appendExchange, currentConversation, listConversations, newConversation } from "./memory.js";
+import { appendExchange, currentConversation, listConversations, newConversation, resumeConversation } from "./memory.js";
 
 const MODEL = "claude-sonnet-5";
 // Nombre de messages récents renvoyés au modèle comme contexte.
@@ -32,6 +32,15 @@ app.get("/api/conversations", async (_req, res) => {
 
 app.post("/api/conversations/new", async (_req, res) => {
   res.json(await newConversation());
+});
+
+app.post("/api/conversations/:id/resume", async (req, res) => {
+  const conv = await resumeConversation(req.params.id);
+  if (!conv) {
+    res.status(404).json({ error: "Conversation introuvable." });
+    return;
+  }
+  res.json(conv);
 });
 
 /**
