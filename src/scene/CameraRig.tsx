@@ -1,20 +1,18 @@
 import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { MathUtils, PerspectiveCamera } from "three";
-
-/** Rayon de la lentille avec son cerclage, en unités 3D. */
-const LENS_RADIUS = 2.6;
+import { EGG_HALF_HEIGHT, EGG_HALF_WIDTH } from "./Egg";
 
 /**
- * Distance de caméra pour que la lentille tienne à l'écran,
+ * Distance de caméra pour que l'œuf tienne à l'écran,
  * et décalage vertical pour la placer au-dessus des sous-titres.
  */
 function framing(camera: PerspectiveCamera, aspect: number) {
   const tanHalf = Math.tan(MathUtils.degToRad(camera.fov / 2));
-  const byHeight = LENS_RADIUS / 0.62 / tanHalf; // ~62 % de la hauteur
-  const byWidth = LENS_RADIUS / 0.9 / (tanHalf * aspect); // ~90 % de la largeur
+  const byHeight = EGG_HALF_HEIGHT / 0.6 / tanHalf; // ~60 % de la hauteur
+  const byWidth = EGG_HALF_WIDTH / 0.75 / (tanHalf * aspect); // ~75 % de la largeur
   const distance = Math.max(byHeight, byWidth);
-  // Centre de la lentille remonté d'environ 12 % de la hauteur d'écran.
+  // Centre de l'œuf remonté d'environ 12 % de la hauteur d'écran.
   const shift = 0.24 * tanHalf * distance;
   return { distance, shift };
 }

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Scene } from "./scene/Scene";
 import { usePhare, type PhareState } from "./voice/usePhare";
 import { useReducedMotion } from "./hooks/useReducedMotion";
+import { useHealth } from "./hooks/useHealth";
 import { audioBus } from "./voice/audioBus";
 
 const STATE_LABEL: Record<PhareState, string> = {
@@ -33,8 +34,10 @@ export function App() {
   const phare = usePhare();
   const { state, pressStart, pressEnd, stop } = phare;
   const answerRef = useRef<HTMLParagraphElement>(null);
+  const health = useHealth();
+  const [draft, setDraft] = useState("");
 
-  // En aperçu "écoute", on simule une voix pour faire réagir les anneaux.
+  // En aperçu "écoute", on simule une voix pour faire réagir le nuage.
   useEffect(() => {
     if (previewState !== "listening") return;
     const id = window.setInterval(() => {
@@ -100,10 +103,28 @@ export function App() {
           </p>
         )}
         {phare.error && <p className="error">{phare.error}</p>}
+        {health === "no-server" && (
+          <p className="error">
+            Le serveur de Phare ne répond pas. Dans le terminal, lance <code>npm run dev</code> et laisse la fenêtre
+            ouverte.
+          </p>
+        )}
+        {health === "no-key" && (
+          <p className="error">
+            Il manque la clé API. Dans le terminal : <code>Ctrl + C</code>, puis <code>npm run setup</code>, puis{" "}
+            <code>npm run dev</code>.
+          </p>
+        )}
+        {!window.isSecureContext && (
+          <p className="error">
+            Le micro ne marche que sur une page sécurisée. Sur téléphone, lance <code>npm run dev:mobile</code> et ouvre
+            l'adresse en https.
+          </p>
+        )}
         {!phare.supported && (
           <p className="error">
             La reconnaissance vocale n'est pas disponible dans ce navigateur. Utilise Google Chrome sur ordinateur ou sur
-            Android.
+            Android. Tu peux quand même écrire à Phare ci-dessous.
           </p>
         )}
       </section>
@@ -154,7 +175,27 @@ export function App() {
         )}
       </footer>
 
-      <p className="hint">Maintiens le bouton ou la barre espace pour parler. Échap pour couper.</p>
+      <form
+        className="type"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const text = draft.trim();
+          if (!text) return;
+          setDraft("");
+          (document.activeElement as HTMLElement | null)?.blur();
+          void phare.ask(text);
+        }}
+      >
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Ou écris à Phare…"
+          aria-label="Écrire à Phare"
+          enterKeyHint="send"
+        />
+      </form>
+
+      <p className="hint">Maintiens le micro ou la barre espace pour parler · Échap pour couper</p>
     </main>
   );
 }

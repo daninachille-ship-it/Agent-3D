@@ -5,6 +5,9 @@
   "type": "module",
   "description": "Phare, assistant vocal personnel en 3D",
   "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "predev": "node scripts/check.mjs",
+    "predev:mobile": "node scripts/check.mjs",
     "dev": "concurrently -n serveur,site -c yellow,cyan \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "tsx watch server/index.ts",
     "dev:web": "vite",

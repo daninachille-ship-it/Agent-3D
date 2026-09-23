@@ -3,13 +3,13 @@
  * Ce sont des valeurs lues à chaque image par la scène : on évite
  * volontairement l'état React pour ne pas re-rendre 60 fois par seconde.
  */
-export const RING_COUNT = 9;
+export const BAND_COUNT = 9;
 
 export const audioBus = {
   /** Niveau global du micro, 0..1 */
   micLevel: 0,
-  /** Énergie par anneau (du centre vers l'extérieur), 0..1 */
-  micBands: new Float32Array(RING_COUNT),
+  /** Énergie par bande de fréquence (graves vers aigus), 0..1 */
+  micBands: new Float32Array(BAND_COUNT),
   /** Instant (performance.now) du dernier mot prononcé par la synthèse vocale */
   lastWordAt: 0,
   /** Vrai si la synthèse a déjà émis des événements "mot" (certaines voix n'en émettent pas) */

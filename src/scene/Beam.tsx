@@ -33,14 +33,14 @@ const fragment = /* glsl */ `
   }
 `;
 
-/** Faisceau de phare : deux cônes lumineux opposés qui tournent autour de la lentille. */
+/** Faisceau de phare : deux cônes lumineux opposés qui tournent autour de l'œuf. */
 export function Beam({ state, reduced }: { state: PhareState; reduced: boolean }) {
   const group = useRef<Group>(null);
   const opacity = useRef(0);
 
   const geometry = useMemo(() => {
     const g = new ConeGeometry(1.1, LENGTH, 48, 1, true);
-    // Sommet du cône au centre de la lentille, ouverture vers l'extérieur.
+    // Sommet du cône au centre de l'œuf, ouverture vers l'extérieur.
     g.translate(0, -LENGTH / 2, 0);
     return g;
   }, []);
@@ -53,7 +53,7 @@ export function Beam({ state, reduced }: { state: PhareState; reduced: boolean }
         uniforms: {
           uOpacity: { value: 0 },
           uLength: { value: LENGTH },
-          uColor: { value: new Color(1.0, 0.82, 0.5) },
+          uColor: { value: new Color(0.85, 0.9, 1.0) },
         },
         transparent: true,
         depthWrite: false,
@@ -66,7 +66,7 @@ export function Beam({ state, reduced }: { state: PhareState; reduced: boolean }
   useFrame((_, delta) => {
     const target = state === "thinking" ? 1 : 0;
     opacity.current += (target - opacity.current) * (1 - Math.exp(-delta * 4));
-    material.uniforms.uOpacity.value = opacity.current * 0.55;
+    material.uniforms.uOpacity.value = opacity.current * 0.4;
     if (group.current) {
       group.current.visible = opacity.current > 0.01;
       group.current.rotation.z -= delta * (reduced ? 0.35 : 1.8);
@@ -74,9 +74,9 @@ export function Beam({ state, reduced }: { state: PhareState; reduced: boolean }
   });
 
   return (
-    <group ref={group} position={[0, 0, 0.35]}>
-      <mesh geometry={geometry} material={material} rotation={[0, 0, 0]} />
-      <mesh geometry={geometry} material={material} rotation={[0, 0, Math.PI]} />
+    <group ref={group} position={[0, 0, 0.35]} renderOrder={11}>
+      <mesh geometry={geometry} material={material} renderOrder={11} />
+      <mesh geometry={geometry} material={material} rotation={[0, 0, Math.PI]} renderOrder={11} />
     </group>
   );
 }

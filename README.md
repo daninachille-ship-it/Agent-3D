@@ -1,14 +1,14 @@
 # Phare
 
 Ton assistant vocal personnel en 3D, façon Jarvis, en français.
-Une lentille de phare en laiton qui respire, t'écoute, réfléchit et te répond à voix haute.
+Une bulle en forme d'œuf, remplie d'un nuage lumineux, qui respire, t'écoute, réfléchit et te répond à voix haute.
 
-![Phare en train de réfléchir](docs/apercu.png)
+![Phare en veille](docs/apercu.png)
 
-- **Veille** : la lampe centrale respire lentement.
-- **Écoute** : les anneaux réagissent au volume de ta voix.
-- **Réflexion** : un faisceau lumineux tourne autour de la lentille.
-- **Parole** : les anneaux pulsent au rythme de la voix de Phare.
+- **Veille** : la lumière au cœur du nuage respire lentement.
+- **Écoute** : le nuage s'agite et s'illumine au volume de ta voix.
+- **Réflexion** : un faisceau lumineux tourne autour de l'œuf et le nuage tourbillonne.
+- **Parole** : l'œuf pulse au rythme de la voix de Phare.
 
 ---
 
@@ -46,20 +46,16 @@ Dans le terminal, place-toi dans le dossier. Le plus simple : tape `cd ` (avec l
 npm install
 ```
 
-### 5. Mettre ta clé dans le fichier `.env`
-
-Copie le fichier d'exemple :
+### 5. Enregistrer ta clé API (une seule fois)
 
 ```bash
-# Mac / Linux
-cp .env.example .env
-
-# Windows (PowerShell)
-copy .env.example .env
+npm run setup
 ```
 
-Ouvre `.env` avec un éditeur de texte (TextEdit, Bloc-notes…) et remplace `sk-ant-...` par ta vraie clé.
+Colle ta clé quand on te la demande, puis Entrée. Ça crée le fichier `.env` tout seul.
 Ce fichier reste sur ton ordinateur : la clé n'est jamais envoyée au navigateur, et il est exclu de git.
+
+> Évite de créer `.env` à la main avec TextEdit ou le Bloc-notes : ils le renomment souvent en `.env.rtf` ou `.env.txt` sans le dire, et Phare ne trouve plus la clé.
 
 ### 6. Lancer Phare
 
@@ -67,7 +63,11 @@ Ce fichier reste sur ton ordinateur : la clé n'est jamais envoyée au navigateu
 npm run dev
 ```
 
+Le terminal affiche deux types de lignes, `[serveur]` et `[site]`. **Laisse cette fenêtre ouverte** tant que tu utilises Phare.
+
 Ouvre **Google Chrome** sur <http://localhost:5173>. La première fois, Chrome demande l'accès au micro : clique sur **Autoriser**.
+
+Si quelque chose cloche, un message rouge sous l'œuf te dit quoi faire.
 
 Pour arrêter : `Ctrl + C` dans le terminal. Pour relancer plus tard : seulement l'étape 6.
 
@@ -80,6 +80,7 @@ Pour arrêter : `Ctrl + C` dans le terminal. Pour relancer plus tard : seulement
 | Parler | Maintiens la **barre espace** (ou le bouton micro) pendant que tu parles, relâche à la fin | Maintiens le bouton micro |
 | Parler sans maintenir | Un appui court : Phare écoute jusqu'à ce que tu te taises | Pareil |
 | Mot d'activation | Active **« Phare »**, puis dis « Phare, quel temps pour une coupure à Deauville ? » | Pareil |
+| Écrire au lieu de parler | Champ « Ou écris à Phare… », puis Entrée | Pareil |
 | Couper Phare | **Échap** ou le bouton **Couper** | Bouton **Couper** |
 | Repartir de zéro | **Nouvelle conv.** | Pareil |
 
@@ -124,9 +125,13 @@ Sur iPhone, Safari et Chrome ne proposent pas (encore) la reconnaissance vocale 
 
 | Problème | Solution |
 | --- | --- |
-| « Clé API manquante » au lancement | Le fichier `.env` n'existe pas ou la clé est vide (étape 5). |
-| « Ma clé API est refusée » | La clé est mal copiée, ou le compte n'a pas de crédit. |
-| « Je n'arrive pas à joindre mon serveur » | Le terminal a été fermé : relance `npm run dev`. |
+| « Il manque la clé API » | Lance `npm run setup` (étape 5), puis `npm run dev`. |
+| « Ma clé API est refusée » | La clé est mal copiée (relance `npm run setup`), ou le compte n'a pas de crédit. |
+| « Le serveur de Phare ne répond pas » | Le terminal a été fermé ou `npm run dev` n'est pas lancé. |
+| « Node.js … est trop ancien » | Installe la version LTS depuis <https://nodejs.org>. |
+| `npm` : commande introuvable | Node.js n'est pas installé (étape 1). Ferme et rouvre le terminal après l'installation. |
+| Page blanche ou œuf absent | Mets Chrome à jour. Vérifie que l'accélération matérielle est active (Paramètres → Système). |
+| Rien ne se passe quand je parle | Essaie d'écrire une question dans le champ texte : si Phare répond, c'est le micro (voir ligne suivante). |
 | « Le micro est bloqué » | Clique sur l'icône à gauche de l'adresse dans Chrome → Micro → Autoriser, puis recharge. |
 | Phare n'a pas de voix française | Chrome utilise les voix du système. Sur Windows : Paramètres → Heure et langue → Voix → ajoute Français. |
 | Le mot « Phare » n'est pas reconnu | Parle distinctement, marque une mini pause après « Phare ». « Far » fonctionne aussi. |
@@ -148,9 +153,13 @@ server/            petit serveur Node/Express (garde la clé API)
   index.ts         route /api/chat : envoie la question à Claude et renvoie la réponse en flux
   memory.ts        historique des conversations dans data/conversations.json
   prompt.ts        la personnalité de Phare
+scripts/
+  setup.mjs        npm run setup : enregistre la clé API dans .env
+  check.mjs        vérifications automatiques avant npm run dev
 src/
   App.tsx          l'interface (boutons, sous-titres, clavier)
-  scene/           la lentille 3D (react-three-fiber) : Lens, Beam (faisceau), CameraRig, Scene (bloom)
+  scene/           la scène 3D (react-three-fiber) : Egg (œuf nuageux, shader), Beam (faisceau),
+                   Halo, CameraRig, Scene (bloom)
   voice/           la voix : reconnaissance (Web Speech API), mot d'activation,
                    synthèse vocale phrase par phrase, analyse du micro (AnalyserNode)
 ```
@@ -159,5 +168,5 @@ La réponse arrive en flux : Phare commence à parler dès la première phrase r
 
 ## Feuille de route
 
-- [x] **Phase 1** : lentille 3D animée, voix (appuyer pour parler + mot d'activation), réponses parlées, mémoire locale.
+- [x] **Phase 1** : œuf nuageux 3D animé, voix (appuyer pour parler + mot d'activation), réponses parlées, mémoire locale.
 - [ ] **Phase 2** : connexion Gmail et Google Agenda (OAuth Google). Avant tout envoi de mail ou modification d'agenda, Phare lit à voix haute ce qu'il va faire et attend ta confirmation vocale.

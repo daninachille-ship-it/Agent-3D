@@ -8,17 +8,18 @@ const MODEL = "claude-sonnet-5";
 // Nombre de messages récents renvoyés au modèle comme contexte.
 const HISTORY_WINDOW = 30;
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error("\n  ✖ Clé API manquante : copie .env.example en .env et colle ta clé ANTHROPIC_API_KEY.\n");
-  process.exit(1);
+const hasKey = /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(process.env.ANTHROPIC_API_KEY ?? "");
+if (!hasKey) {
+  // On ne s'arrête pas : le site s'affiche quand même et explique quoi faire.
+  console.warn("\n  ⚠ Clé API manquante ou invalide dans .env. Lance  npm run setup  pour la renseigner.\n");
 }
 
-const client = new Anthropic();
+const client = hasKey ? new Anthropic() : null;
 const app = express();
 app.use(express.json({ limit: "100kb" }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, model: MODEL });
+  res.json({ ok: true, model: MODEL, hasKey });
 });
 
 app.get("/api/history", async (_req, res) => {
@@ -41,6 +42,10 @@ app.post("/api/chat", async (req, res) => {
   const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
   if (!text) {
     res.status(400).json({ error: "Message vide." });
+    return;
+  }
+  if (!client) {
+    res.status(503).json({ error: "Je n'ai pas de clé API. Lance npm run setup dans le terminal, puis relance Phare." });
     return;
   }
 

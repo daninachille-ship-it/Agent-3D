@@ -1,4 +1,4 @@
-import { audioBus, RING_COUNT } from "./audioBus";
+import { audioBus, BAND_COUNT } from "./audioBus";
 
 let ctx: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
@@ -71,9 +71,9 @@ export function sampleMic(delta: number): void {
     // Bandes logarithmiques de 90 Hz à 5 kHz : la plage utile de la voix.
     const lo = 90;
     const hi = 5000;
-    for (let b = 0; b < RING_COUNT; b++) {
-      const f0 = lo * Math.pow(hi / lo, b / RING_COUNT);
-      const f1 = lo * Math.pow(hi / lo, (b + 1) / RING_COUNT);
+    for (let b = 0; b < BAND_COUNT; b++) {
+      const f0 = lo * Math.pow(hi / lo, b / BAND_COUNT);
+      const f1 = lo * Math.pow(hi / lo, (b + 1) / BAND_COUNT);
       const i0 = Math.max(1, Math.floor(f0 / binHz));
       const i1 = Math.max(i0 + 1, Math.ceil(f1 / binHz));
       let acc = 0;
@@ -90,7 +90,7 @@ export function sampleMic(delta: number): void {
   const k = audioBus.fakeMicKick;
   const t = performance.now() / 1000;
   audioBus.micLevel = k;
-  for (let b = 0; b < RING_COUNT; b++) {
+  for (let b = 0; b < BAND_COUNT; b++) {
     audioBus.micBands[b] = k * (0.55 + 0.45 * Math.sin(t * 7 + b * 1.3));
   }
 }
