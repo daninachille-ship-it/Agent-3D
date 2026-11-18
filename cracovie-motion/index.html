@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Cracovie en 7 jours</title>
+<style>
+@font-face{font-family:'Lora';font-weight:700;font-style:normal;src:url(fonts/lora-latin-700-normal.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Lora';font-weight:700;font-style:normal;src:url(fonts/lora-latin-ext-700-normal.woff2) format('woff2');
+  unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+:root{
+  --ink:#1E2433;--night2:#2B3245;--hill:#262D40;--slate:#3A4256;--river:#34405A;
+  --paper:#F6F1E9;--paper2:#ECE4D6;--brick:#A63D2A;--brick2:#7E2D1F;--gold:#D9A441;
+  --soft:#C9CED8;--softL:#4A5260;--stone:#C9B79A;
+  --serif:'Lora','EB Garamond','DejaVu Serif',serif;
+  --sans:'Inter','Public Sans','DejaVu Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ink);font-family:var(--sans);color:var(--paper)}
+canvas{position:absolute;left:0;top:0}
+.scene{position:absolute;left:0;top:0;width:1920px;height:1080px;display:none;overflow:hidden}
+.scene.paper{background:var(--paper)}
+.abs{position:absolute}
+.kicker{font-family:var(--sans);font-weight:600;text-transform:uppercase;letter-spacing:.2em;font-size:28px;color:var(--gold);white-space:nowrap}
+.paper .kicker{color:var(--brick)}
+.serif{font-family:var(--serif);font-weight:700}
+.wc{will-change:transform,opacity}
+
+/* moon */
+.moon{width:150px;height:150px}
+.moon .halo{position:absolute;left:-75px;top:-75px;width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,164,65,.55) 0%,rgba(217,164,65,.18) 45%,rgba(217,164,65,0) 70%);filter:blur(18px)}
+.moon .disc{position:absolute;left:0;top:0;width:150px;height:150px;border-radius:50%;background:var(--gold)}
+.moon .disc::after{content:"";position:absolute;left:34px;top:40px;width:30px;height:30px;border-radius:50%;background:#C8933A;opacity:.55;
+  box-shadow:52px 30px 0 -4px #C8933A,18px 62px 0 -9px #C8933A}
+.pano{position:absolute;left:0;top:720px;width:1920px;height:360px}
+.pano svg{display:block}
+
+/* Scene A */
+#aText{left:150px;top:170px}
+#aTitle{font-size:250px;line-height:1;margin-top:18px;white-space:nowrap;color:var(--paper)}
+#aTitle span{display:inline-block;transform-origin:50% 100%}
+#aEn{font-weight:600;font-size:72px;color:var(--gold);margin-top:18px;line-height:1;white-space:nowrap}
+#aLine{height:8px;background:var(--brick);margin-top:34px;width:0;border-radius:4px}
+#aSub{font-size:38px;color:var(--soft);margin-top:30px;white-space:nowrap}
+
+/* Scene B */
+#bLeft{left:130px;top:250px}
+#bLeft .ln{font-family:var(--serif);font-weight:700;font-size:76px;line-height:1.12;color:var(--ink);white-space:nowrap}
+#bLeft .kicker{margin-bottom:26px}
+#map{left:780px;top:190px;width:1000px;height:700px;transform-origin:50% 50%}
+#map svg{display:block}
+.pill{position:absolute;white-space:nowrap;background:var(--ink);color:var(--paper);font-size:24px;font-weight:600;
+  padding:8px 18px;border-radius:999px;line-height:28px;transform-origin:50% 50%;box-shadow:0 6px 14px rgba(30,36,51,.18)}
+
+/* Scene C */
+.day{position:absolute;left:0;top:0;width:1920px;height:1080px}
+.digit{position:absolute;left:110px;top:110px;font-family:var(--serif);font-weight:700;font-size:560px;line-height:1;color:var(--gold);transform-origin:30% 60%}
+.vig{position:absolute;left:520px;top:200px;width:448px;height:656px;border-radius:24px;overflow:hidden;background:var(--ink);
+  box-shadow:0 34px 70px rgba(5,8,16,.55),0 8px 18px rgba(5,8,16,.35)}
+.vig svg{display:block}
+.txt{position:absolute;left:1060px;top:330px;width:760px}
+.txt .ttl{font-family:var(--serif);font-weight:700;font-size:92px;line-height:1.05;color:var(--paper);margin-top:22px}
+.txt .lin{font-size:40px;line-height:1.35;color:var(--soft);margin-top:26px}
+#dots{left:1060px;top:930px;display:flex;gap:26px}
+#dots i{display:block;width:18px;height:18px;border-radius:50%;background:var(--slate)}
+
+/* Scene D */
+#dTitle{left:0;top:96px;width:1920px;text-align:center;font-size:120px;line-height:1.1}
+.food{position:absolute;width:420px;text-align:center;transform-origin:50% 40%}
+.food svg{display:block;margin:0 auto}
+.food .nm{font-family:var(--serif);font-weight:700;font-size:56px;line-height:1.1;margin-top:18px;color:var(--paper);white-space:nowrap}
+
+/* Scene E */
+#eKick{left:150px;top:190px}
+#eNum{left:142px;top:232px;font-size:330px;line-height:1;color:var(--brick);white-space:nowrap}
+#eNum .eur{font-size:.7em}
+#eSent{left:150px;top:600px;width:1160px;font-size:44px;line-height:1.3;color:var(--softL)}
+#eSent b{color:var(--ink);font-weight:600}
+#ePills{left:150px;top:790px;display:flex;gap:24px}
+#ePills .pill{position:relative;font-size:30px;line-height:36px;padding:14px 28px;font-weight:400}
+#ePills .pill b{color:var(--gold);font-weight:600;margin-left:6px}
+#bar{left:1400px;top:200px;width:120px;height:680px;border-radius:14px;background:var(--paper2);overflow:hidden}
+.seg{position:absolute;left:0;width:120px;transform-origin:50% 100%}
+.segl{position:absolute;left:1548px;font-size:28px;line-height:34px;color:var(--softL);white-space:nowrap}
+.segl b{color:var(--ink);font-weight:600}
+.segl::before{content:"";position:absolute;left:-30px;top:16px;width:20px;height:2px;background:var(--softL);opacity:.5}
+
+/* Scene F */
+#fTitle{left:0;top:330px;width:1920px;text-align:center;font-size:118px;line-height:1.1;white-space:nowrap}
+#fTitle span{display:inline-block}
+#fGold{left:0;top:500px;width:1920px;text-align:center;font-size:44px;color:var(--gold);font-weight:600}
+#fSmall{left:0;top:572px;width:1920px;text-align:center;font-size:32px;color:var(--soft)}
+
+/* overlays */
+.panel{position:absolute;left:0;top:-40px;width:2800px;height:1160px;transform:translateX(-3200px) skewX(-12deg)}
+#panelGold{background:var(--gold)}
+#panelBrick{background:var(--brick)}
+#fade{position:absolute;left:0;top:0;width:1920px;height:1080px;background:#0F131C;opacity:1;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="stars" width="1920" height="1080"></canvas>
+
+  <!-- A : titre -->
+  <section id="sA" class="scene">
+    <div id="aMoon" class="abs moon wc" style="left:1560px;top:150px"><div class="halo"></div><div class="disc"></div></div>
+    <div id="aPano" class="pano wc"></div>
+    <div id="aText" class="abs wc">
+      <div id="aKick" class="kicker wc">Pologne · voyage d’hiver</div>
+      <div id="aTitle" class="serif"></div>
+      <div id="aEn">EN 7 JOURS</div>
+      <div id="aLine"></div>
+      <div id="aSub" class="wc">Patrimoine, mémoire et montagnes</div>
+    </div>
+  </section>
+
+  <!-- B : carte -->
+  <section id="sB" class="scene paper">
+    <div id="bLeft" class="abs">
+      <div id="bKick" class="kicker">Se repérer</div>
+      <div class="ln wc">Trois jours</div>
+      <div class="ln wc">à pied,</div>
+      <div class="ln wc">trois excursions,</div>
+      <div class="ln wc">un jour libre.</div>
+    </div>
+    <div id="map" class="abs wc"></div>
+  </section>
+
+  <!-- C : 7 jours -->
+  <section id="sC" class="scene">
+    <div id="days"></div>
+    <div id="dots" class="abs"></div>
+  </section>
+
+  <!-- D : gastronomie -->
+  <section id="sD" class="scene">
+    <div id="dTitle" class="abs serif wc">À goûter</div>
+    <div id="foods"></div>
+  </section>
+
+  <!-- E : budget -->
+  <section id="sE" class="scene paper">
+    <div id="eKick" class="abs kicker">Budget sur place · 7 jours</div>
+    <div id="eNum" class="abs serif"></div>
+    <div id="eSent" class="abs wc">pour <b>2 personnes</b>, hors vols, soit environ <b>615&#8239;€</b> chacun</div>
+    <div id="ePills" class="abs">
+      <div class="pill wc">Wieliczka <b>143&nbsp;zł</b></div>
+      <div class="pill wc">Bus Zakopane <b>dès 7&#8239;€</b></div>
+      <div class="pill wc">Tram 48&nbsp;h <b>40&nbsp;zł</b></div>
+    </div>
+    <div id="bar" class="abs"></div>
+    <div id="segls"></div>
+  </section>
+
+  <!-- F : conclusion -->
+  <section id="sF" class="scene">
+    <div id="fMoon" class="abs moon wc" style="left:1600px;top:80px"><div class="halo"></div><div class="disc"></div></div>
+    <div id="fPano" class="pano wc"></div>
+    <div id="fTitle" class="abs serif"></div>
+    <div id="fGold" class="abs wc">À bientôt à Cracovie</div>
+    <div id="fSmall" class="abs wc">Cracovie en 7 jours · programme d’hiver pour deux</div>
+  </section>
+
+  <canvas id="snow" width="1920" height="1080"></canvas>
+  <div id="panelGold" class="panel"></div>
+  <div id="panelBrick" class="panel"></div>
+  <div id="fade"></div>
+</div>
+<script src="anim.js"></script>
+</body>
+</html>
