@@ -49,8 +49,15 @@ if __name__ == '__main__':
             fn = f'{key}_{i}.jpg'
             path = os.path.join(outdir, fn)
             if not os.path.exists(path):
-                try: data = get(r['thumb'])
-                except Exception as e: print('skip', fn, e, flush=True); continue
+                data = None
+                for wpx in ('1920px-', '1280px-', '960px-'):
+                    url = r['thumb'].replace('/1920px-', '/' + wpx)
+                    try:
+                        req = urllib.request.Request(url, headers={'User-Agent': UA})
+                        with urllib.request.urlopen(req, timeout=60) as resp: data = resp.read(); break
+                    except Exception as e:
+                        time.sleep(4)
+                if data is None: print('skip', fn, flush=True); continue
                 open(path, 'wb').write(data)
                 time.sleep(1.0)
             meta[fn] = r
