@@ -42,7 +42,7 @@ Requirements: Node 20+, Playwright with Chromium, ffmpeg, Python 3 with numpy.
 
 ```bash
 # full film: width height fps workers
-tools/render-all.sh 1920 1080 60 4       # -> out/krakow-7days-1080p60.mp4
+tools/render-all.sh 1920 1080 60 4       # -> out/cracovie-7jours-1080p60.mp4
 tools/render-all.sh 3840 2160 60 4       # 4K (about 4× longer)
 
 # preview stills

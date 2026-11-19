@@ -351,12 +351,12 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   // ---------- typography / overlay ----------
   const ov = overlay;
   ov.innerHTML = `
-    <div id="hud"><div class="hud-day"><span class="hud-k">DAY</span><span class="hud-n">1</span><span class="hud-of">/ 7</span></div><div class="hud-sub"></div><div class="hud-dots">${'<i></i>'.repeat(7)}</div></div>
+    <div id="hud"><div class="hud-day"><span class="hud-k">JOUR</span><span class="hud-n">1</span><span class="hud-of">/ 7</span></div><div class="hud-sub"></div><div class="hud-dots">${'<i></i>'.repeat(7)}</div></div>
     <div id="label"><div class="lab-k"></div><div class="lab-n"></div><div class="lab-s"></div></div>
     <div id="title"><div class="t-main"></div><div class="t-sub"><span class="ln"></span><span class="tx"></span><span class="ln"></span></div></div>
     <div id="final"><div class="f1"></div><div class="f2"><span></span><span></span><span></span></div><div class="f3"></div></div>
-    <div id="memo"><div class="m1">AUSCHWITZ-BIRKENAU</div><div class="m2">Memorial and Museum &nbsp;·&nbsp; UNESCO World Heritage</div><div class="m3">A place of remembrance. Visit with respect.</div></div>
-    <div id="march"><div class="mk">MARCH IN KRAKÓW</div><div class="mt"><span class="from">−2°C</span><span class="arrow"></span><span class="to">12°C</span></div><div class="ms">Fewer crowds &nbsp;·&nbsp; golden light &nbsp;·&nbsp; the first terraces</div></div>
+    <div id="memo"><div class="m1">AUSCHWITZ-BIRKENAU</div><div class="m2">Mémorial et Musée &nbsp;·&nbsp; Patrimoine mondial de l’UNESCO</div><div class="m3">Un lieu de mémoire. À visiter avec respect.</div></div>
+    <div id="march"><div class="mk">MARS À CRACOVIE</div><div class="mt"><span class="from">−2°C</span><span class="arrow"></span><span class="to">12°C</span></div><div class="ms">Moins de monde &nbsp;·&nbsp; lumière dorée &nbsp;·&nbsp; premières terrasses</div></div>
     <div id="bars"></div>`;
   const $ = (s) => ov.querySelector(s);
   const hud = $('#hud'), hudN = $('.hud-n'), hudSub = $('.hud-sub'), dots = [...ov.querySelectorAll('.hud-dots i')];
@@ -364,23 +364,23 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   const title = $('#title'), tMain = $('.t-main'), tSub = $('.t-sub'), tSubTx = $('.t-sub .tx');
   const fin = $('#final'), f1 = $('.f1'), f2 = [...ov.querySelectorAll('.f2 span')], f3 = $('.f3');
   const memoEl = $('#memo'), marchEl = $('#march');
-  tMain.innerHTML = 'KRAKOW'.split('').map((c) => `<span>${c}</span>`).join('');
-  tSubTx.textContent = '7 DAYS – 2 TRAVELERS';
-  f1.innerHTML = 'KRAKOW <em>–</em> POLAND'; f2[0].textContent = '7 DAYS.'; f2[1].textContent = '2 TRAVELERS.'; f2[2].textContent = 'COUNTLESS EXPERIENCES.';
-  f3.innerHTML = "LET'S EXPLORE!";
-  const DAYS = [[8.3, 17.2, 1, 'Old Town'], [17.2, 20.0, 2, 'Wawel'], [20.0, 30.0, 3, 'Kazimierz & the Vistula'], [30.0, 43.0, 4, 'Flavours & culture'], [43.0, 49.3, 5, 'Wieliczka'], [49.3, 55.0, 6, 'Auschwitz-Birkenau'], [55.0, 65.2, 7, 'March in Kraków']];
+  tMain.innerHTML = 'CRACOVIE'.split('').map((c) => `<span>${c}</span>`).join('');
+  tSubTx.textContent = '7 JOURS – 2 VOYAGEURS';
+  f1.innerHTML = 'CRACOVIE <em>–</em> POLOGNE'; f2[0].textContent = '7 JOURS.'; f2[1].textContent = '2 VOYAGEURS.'; f2[2].textContent = 'D’INNOMBRABLES EXPÉRIENCES.';
+  f3.innerHTML = "PARTONS EXPLORER&nbsp;!";
+  const DAYS = [[8.3, 17.2, 1, 'Vieille ville'], [17.2, 20.0, 2, 'Wawel'], [20.0, 30.0, 3, 'Kazimierz & la Vistule'], [30.0, 43.0, 4, 'Saveurs & culture'], [43.0, 49.3, 5, 'Wieliczka'], [49.3, 55.0, 6, 'Auschwitz-Birkenau'], [55.0, 65.2, 7, 'Mars à Cracovie']];
   const LABELS = [
-    [8.6, 9.9, 'DAY 1 · OLD TOWN', 'Rynek Główny', 'Main Market Square — the heart of medieval Kraków'],
-    [10.0, 11.4, 'DAY 1 · OLD TOWN', 'St. Mary’s Basilica', 'Bazylika Mariacka — the hejnał sounds every hour'],
-    [11.5, 12.9, 'DAY 1 · OLD TOWN', 'Cloth Hall', 'Sukiennice — Renaissance market hall'],
-    [13.0, 14.3, 'DAY 1 · OLD TOWN', 'Town Hall Tower', 'Wieża Ratuszowa'],
-    [14.5, 16.8, 'UNESCO · 1978', 'Historic Centre', 'One of the first sites on the World Heritage list'],
-    [18.0, 20.0, 'DAY 2 · ROYAL HILL', 'Wawel Castle', 'Zamek Królewski & the Royal Cathedral'],
-    [20.8, 26.0, 'DAY 3 · KAZIMIERZ', 'Kazimierz', 'Cafés · street art · cellar bars · soul'],
-    [26.6, 29.7, 'DAY 3 · BY THE RIVER', 'Vistula Boulevards', 'Bulwary Wiślane — Wawel by night'],
-    [45.3, 49.0, 'DAY 5 · EXCURSION · 14 KM', 'Wieliczka Salt Mine', 'St. Kinga’s Chapel — carved in salt, 101 m underground'],
+    [8.6, 9.9, 'JOUR 1 · VIEILLE VILLE', 'Rynek Główny', 'La place du Marché, cœur de la Cracovie médiévale'],
+    [10.0, 11.4, 'JOUR 1 · VIEILLE VILLE', 'Basilique Sainte-Marie', 'Bazylika Mariacka — le hejnał y retentit toutes les heures'],
+    [11.5, 12.9, 'JOUR 1 · VIEILLE VILLE', 'La Halle aux Draps', 'Sukiennice — halle marchande Renaissance'],
+    [13.0, 14.3, 'JOUR 1 · VIEILLE VILLE', 'Tour de l’Hôtel de Ville', 'Wieża Ratuszowa'],
+    [14.5, 16.8, 'UNESCO · 1978', 'Centre historique', 'L’un des tout premiers sites du patrimoine mondial'],
+    [18.0, 20.0, 'JOUR 2 · LA COLLINE ROYALE', 'Château du Wawel', 'Zamek Królewski et la cathédrale royale'],
+    [20.8, 26.0, 'JOUR 3 · KAZIMIERZ', 'Kazimierz', 'Cafés · street art · bars en caves · une âme unique'],
+    [26.6, 29.7, 'JOUR 3 · AU FIL DE L’EAU', 'Les berges de la Vistule', 'Bulwary Wiślane — le Wawel illuminé'],
+    [45.3, 49.0, 'JOUR 5 · EXCURSION · 14 KM', 'Mines de sel de Wieliczka', 'Chapelle Sainte-Cunégonde — sculptée dans le sel, à 101 m sous terre'],
   ];
-  const TAB_LABELS = [['FLAVOURS', 'Pierogi & Polish cuisine'], ['CAFÉS', 'Kawiarnie & obwarzanki'], ['SHOPPING', 'Amber & crafts in the Sukiennice'], ['MUSEUMS', 'Heritage & royal treasures'], ['NIGHTLIFE', 'Vaulted cellar bars'], ['URBAN WALKS', 'Every street, a new story']];
+  const TAB_LABELS = [['SAVEURS', 'Pierogi & cuisine polonaise'], ['CAFÉS', 'Kawiarnie & obwarzanki'], ['SHOPPING', 'Ambre & artisanat aux Sukiennice'], ['MUSÉES', 'Patrimoine & trésors royaux'], ['VIE NOCTURNE', 'Bars voûtés en caves'], ['BALADES', 'Chaque rue, une nouvelle histoire']];
 
   const setO = (el, o, tf = '') => { el.style.opacity = o.toFixed(3); el.style.transform = tf; el.style.visibility = o > 0.001 ? 'visible' : 'hidden'; };
   function updateOverlay(t) {
@@ -397,7 +397,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     // lower-left labels
     let L = LABELS.find(([a, b]) => t >= a && t < b);
     let tabLabel = null;
-    if (t >= 30.2 && t < 42.8) { let i = 0; while (i < TABLEAUX.length - 1 && t >= TABLEAUX[i + 1]) i++; const a = Math.max(TABLEAUX[i] + 0.15, 30.3), b = (i < TABLEAUX.length - 1 ? TABLEAUX[i + 1] : 42.9) - 0.25; tabLabel = [a, b, `DAY 4 · ${TAB_LABELS[i][0]}`, TAB_LABELS[i][1], '']; }
+    if (t >= 30.2 && t < 42.8) { let i = 0; while (i < TABLEAUX.length - 1 && t >= TABLEAUX[i + 1]) i++; const a = Math.max(TABLEAUX[i] + 0.15, 30.3), b = (i < TABLEAUX.length - 1 ? TABLEAUX[i + 1] : 42.9) - 0.25; tabLabel = [a, b, `JOUR 4 · ${TAB_LABELS[i][0]}`, TAB_LABELS[i][1], '']; }
     L = L || tabLabel;
     if (L) {
       const [a, b, k, n, s] = L;
@@ -433,7 +433,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     setO(marchEl, mO);
     if (mO > 0) {
       const tmp = Math.round(lerp(-2, 12, smooth(56.5, 61.5, t)));
-      marchEl.querySelector('.from').textContent = `${tmp < 0 ? '−' : ''}${Math.abs(tmp)}°C`;
+      marchEl.querySelector('.from').textContent = `${tmp < 0 ? '−' : ''}${Math.abs(tmp)} °C`;
       marchEl.querySelector('.from').style.color = tmp < 4 ? '#bfe3ff' : '#ffe0a0';
       marchEl.querySelector('.to').style.opacity = 0;
       marchEl.querySelector('.ms').style.opacity = smooth(59.5, 60.3, t).toFixed(3);
