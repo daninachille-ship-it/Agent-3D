@@ -19,7 +19,11 @@ def get(url):
             time.sleep(wait)
     raise RuntimeError('failed ' + url)
 
-def search(query, n=8):
+def get_once(url):
+    req = urllib.request.Request(url, headers={'User-Agent': UA})
+    with urllib.request.urlopen(req, timeout=90) as r: return r.read()
+
+def search(query, n=6):
     """Search via Openverse (CC-licensed images, no key); prefer Wikimedia-hosted files (1920 px thumbs)."""
     q = {'q': query, 'page_size': 20, 'license_type': 'commercial,modification', 'aspect_ratio': 'wide', 'size': 'large'}
     d = json.loads(get('https://api.openverse.org/v1/images/?' + urllib.parse.urlencode(q)))
@@ -30,11 +34,10 @@ def search(query, n=8):
         if 'upload.wikimedia.org/wikipedia/commons/' in url:
             name = url.rsplit('/', 1)[-1]
             thumb = url.replace('/wikipedia/commons/', '/wikipedia/commons/thumb/') + f'/1920px-{name}'
-        elif 'staticflickr.com' in url: thumb = url
-        else: continue
+        else: thumb = url
         lic = f"CC {r.get('license', '').upper()} {r.get('license_version') or ''}".strip()
         if r.get('license') in ('cc0', 'pdm'): lic = r['license'].upper()
-        out.append({'title': r.get('title') or '', 'thumb': thumb, 'page': r.get('foreign_landing_url'), 'license': lic, 'author': r.get('creator') or '', 'w': w, 'h': h, 'source': r.get('source')})
+        out.append({'id': r.get('id'), 'title': r.get('title') or '', 'thumb': thumb, 'page': r.get('foreign_landing_url'), 'license': lic, 'author': r.get('creator') or '', 'w': w, 'h': h, 'source': r.get('source')})
         if len(out) >= n: break
     return out
 
@@ -50,13 +53,16 @@ if __name__ == '__main__':
             path = os.path.join(outdir, fn)
             if not os.path.exists(path):
                 data = None
-                for wpx in ('1920px-', '1600px-', '1280px-', '1200px-', '1024px-', '960px-', '800px-'):
+                for wpx in ('1920px-', '1280px-'):
                     url = r['thumb'].replace('/1920px-', '/' + wpx)
                     try:
                         req = urllib.request.Request(url, headers={'User-Agent': UA})
                         with urllib.request.urlopen(req, timeout=60) as resp: data = resp.read(); break
                     except Exception as e:
                         time.sleep(1.5)
+                if data is None and r.get('id'):
+                    try: data = get_once(f"https://api.openverse.org/v1/images/{r['id']}/thumb/?full_size=true")
+                    except Exception as e: data = None
                 if data is None: print('skip', fn, flush=True); continue
                 open(path, 'wb').write(data)
                 time.sleep(1.0)
