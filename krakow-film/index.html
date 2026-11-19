@@ -47,12 +47,12 @@
   .f2 span:nth-child(3) { background: linear-gradient(90deg, #ffd27a, #ff8a5c, #ff5fa8); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .f3 { position: absolute; font-weight: 900; font-size: 8.2cqw; white-space: nowrap; letter-spacing: .02em; background: linear-gradient(180deg, #fff 25%, #ffd27a 70%, #ff8a4c); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 2.4cqw rgba(255,180,90,.45)); }
   /* memorial */
-  #memo { left: 0; right: 0; bottom: 12cqh; text-align: center; color: #f2f2f2; text-shadow: 0 0 1cqw rgba(0,0,0,.4); }
+  #memo { left: 0; right: 0; bottom: 12cqh; text-align: center; color: #1e1e1e; text-shadow: 0 0 1.2cqw rgba(255,255,255,.7); }
   .m1 { font-weight: 800; font-size: 3.2cqw; letter-spacing: .32em; padding-left: .32em; }
   .m2 { font-weight: 400; font-size: 1.15cqw; letter-spacing: .2em; margin-top: .8cqw; opacity: .9; }
   .m3 { font-weight: 400; font-size: 1.3cqw; font-style: italic; margin-top: 1.6cqw; opacity: .9; }
   /* march */
-  #march { right: 4cqw; top: 9cqh; text-align: right; text-shadow: 0 .2cqw 1.4cqw rgba(0,0,0,.5); }
+  #march { right: 4cqw; top: 9cqh; text-align: right; text-shadow: 0 .2cqw 1.4cqw rgba(0,0,0,.5); background: rgba(6,16,34,.62); padding: 1.2cqw 1.8cqw; border-radius: .6cqw; }
   .mk { font-weight: 900; font-size: 3.0cqw; letter-spacing: .3em; }
   .mt { font-weight: 900; font-size: 6cqw; line-height: 1.1; }
   .mt .arrow, .mt .to { display: none; }
@@ -80,7 +80,7 @@
   const H = render ? +(params.get('h') || 1080) : Math.round(rect.height * Math.min(devicePixelRatio, 2));
   const world = await (await fetch('./data/countries-50m.json')).json();
   await document.fonts.ready;
-  const film = await createFilm({ canvas: document.getElementById('c'), width: W, height: H, world, topojson: window.topojson, overlay: document.getElementById('ov'), style: params.get('style') || 'photo' });
+  const film = await createFilm({ canvas: document.getElementById('c'), width: W, height: H, world, topojson: window.topojson, overlay: document.getElementById('ov'), style: params.get('style') || 'blueprint' });
   window.film = film;
   if (render) { await film.warmup(); window.filmReady = true; }
   else {

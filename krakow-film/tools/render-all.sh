@@ -15,5 +15,5 @@ for i in $(seq 0 $((N-1))); do
   pids+=($!); echo "file 'part$i.mp4'" >> out/list.txt
 done
 for p in "${pids[@]}"; do wait $p; done
-ffmpeg -y -loglevel error -f concat -safe 0 -i out/list.txt -i out/soundtrack.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -shortest -movflags +faststart out/cracovie-7jours-${H}p${FPS}.mp4
-echo "DONE out/cracovie-7jours-${H}p${FPS}.mp4"
+ffmpeg -y -loglevel error -f concat -safe 0 -i out/list.txt -i out/soundtrack.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -shortest -movflags +faststart out/cracovie-7jours-${STYLE:-architecte}-${H}p${FPS}.mp4
+echo "DONE out/cracovie-7jours-${STYLE:-architecte}-${H}p${FPS}.mp4"

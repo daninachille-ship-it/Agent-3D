@@ -7,12 +7,14 @@ import { buildCity, P } from './city.js';
 import { buildGallery, buildMap, buildWieliczka, buildMemorial } from './dioramas.js';
 import { SEGMENTS, IMPACTS, TABLEAUX, DURATION } from './timeline.js';
 import { buildPhotos, PLATES } from './photos.js';
+import { createBlueprint } from './blueprint.js';
 
 const G = GG; window.__G = GG;
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-export async function createFilm({ canvas, width, height, world, topojson, overlay, style = 'photo' }) {
+export async function createFilm({ canvas, width, height, world, topojson, overlay, style = 'blueprint' }) {
   const PHOTO = style === 'photo';
+  const BP = style === 'blueprint';
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(1);
   renderer.setSize(width, height, false);
@@ -22,7 +24,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
 
   // ---------- worlds ----------
   let _t = performance.now(); const lap = (n) => { const x = performance.now(); console.log(`[t] ${n} ${(x - _t).toFixed(0)}ms`); _t = x; };
-  const earth = buildEarth(world, topojson); lap('earth');
+  const earth = buildEarth(world, topojson, { blueprint: BP }); lap('earth');
   const photos = PHOTO ? buildPhotos() : null; if (photos) { await photos.ready; lap('photos'); }
   const city = PHOTO ? null : buildCity(); lap('city');
   const gallery = PHOTO ? null : buildGallery(); lap('gallery');
@@ -30,6 +32,15 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   const wiel = PHOTO ? null : buildWieliczka(); lap('wieliczka');
   const memo = PHOTO ? null : buildMemorial(); lap('memorial');
 
+  const bp = BP ? createBlueprint(renderer, width, height) : null;
+  if (bp) {
+    city.sky.visible = false;
+    bp.prep(city.scene, Object.values(city.M).filter((m) => m && m.group).map((m) => m.group));
+    bp.prep(gallery.scene); bp.prep(wiel.scene); bp.prep(memo.scene);
+  }
+  const C2 = (h) => new THREE.Color(h);
+  const BP_WIEL = { bg: C2('#1c130a'), bg2: C2('#0c0804'), line: C2('#ffd9a0'), gold: C2('#fff2c8'), fill: 0.06, gain: 1.4, far: 30 };
+  const BP_MEMO = { bg: C2('#d9d9d3'), bg2: C2('#c4c4be'), line: C2('#2a2a2a'), gold: C2('#2a2a2a'), fill: 0.04, gain: 1.0, far: 160, grid: 0.35 };
   const camA = new THREE.PerspectiveCamera(40, width / height, 0.1, 2000);
   const camB = new THREE.PerspectiveCamera(40, width / height, 0.1, 2000);
 
@@ -45,14 +56,14 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   // ---------- lighting presets ----------
   const C = (h) => new THREE.Color(h);
   const PRE = {
-    day: { sunDir: V(-0.45, 0.78, 0.5), sunCol: C('#fff1dc'), sunI: 3.0, hemiSky: C('#bcd6ff'), hemiGround: C('#8a7a62'), hemiI: 1.15, skyTop: C('#2f6fd0'), skyHor: C('#cfe3f5'), fog: C('#d3e2ee'), fogD: 0.0032, night: 0, flood: 0, exposure: 1.0, bloom: 0.32 },
-    golden: { sunDir: V(-0.78, 0.33, 0.5), sunCol: C('#ffc27a'), sunI: 3.3, hemiSky: C('#ffd9b5'), hemiGround: C('#6b5a48'), hemiI: 0.9, skyTop: C('#4a76c4'), skyHor: C('#ffc890'), fog: C('#efc6a0'), fogD: 0.0038, night: 0, flood: 0.1, exposure: 1.05, bloom: 0.45 },
-    sunset: { sunDir: V(-0.85, 0.11, 0.45), sunCol: C('#ff7a3c'), sunI: 2.4, hemiSky: C('#c890a0'), hemiGround: C('#4a3a3a'), hemiI: 0.75, skyTop: C('#2c3f7a'), skyHor: C('#ff8656'), fog: C('#c27866'), fogD: 0.0045, night: 0.35, flood: 0.3, exposure: 1.1, bloom: 0.6 },
-    bluehour: { sunDir: V(-0.9, 0.04, 0.4), sunCol: C('#7a8cff'), sunI: 0.6, hemiSky: C('#5070c0'), hemiGround: C('#202030'), hemiI: 0.95, skyTop: C('#0f1a44'), skyHor: C('#3a4f9a'), fog: C('#2a3466'), fogD: 0.0048, night: 0.85, flood: 0.75, exposure: 1.15, bloom: 0.8 },
-    night: { sunDir: V(0.3, 0.6, -0.5), sunCol: C('#8fa8ff'), sunI: 0.8, hemiSky: C('#3a4f96'), hemiGround: C('#1c1c2a'), hemiI: 1.1, skyTop: C('#040920'), skyHor: C('#1a2550'), fog: C('#121a3a'), fogD: 0.0042, night: 1, flood: 0.85, exposure: 1.15, bloom: 0.95 },
-    winter: { sunDir: V(-0.3, 0.45, 0.6), sunCol: C('#e8eef5'), sunI: 1.3, hemiSky: C('#c8d4e4'), hemiGround: C('#8a8f99'), hemiI: 1.35, skyTop: C('#8193ab'), skyHor: C('#c9d2dc'), fog: C('#c3ccd6'), fogD: 0.0055, night: 0.2, flood: 0, exposure: 1.0, bloom: 0.3 },
-    spring: { sunDir: V(-0.55, 0.55, 0.55), sunCol: C('#fff0d0'), sunI: 3.2, hemiSky: C('#c4dcff'), hemiGround: C('#8a7a5a'), hemiI: 1.1, skyTop: C('#3a86e0'), skyHor: C('#d8ecff'), fog: C('#d9e8f4'), fogD: 0.003, night: 0, flood: 0, exposure: 1.05, bloom: 0.38 },
-    finale: { sunDir: V(0.3, 0.6, -0.5), sunCol: C('#8fa8ff'), sunI: 0.8, hemiSky: C('#3a4f96'), hemiGround: C('#1c1c2a'), hemiI: 1.05, skyTop: C('#030716'), skyHor: C('#24306a'), fog: C('#101838'), fogD: 0.0028, night: 1, flood: 1.8, exposure: 1.2, bloom: 1.25 },
+    day: { sunDir: V(-0.45, 0.78, 0.5), sunCol: C('#fff1dc'), sunI: 3.0, hemiSky: C('#bcd6ff'), hemiGround: C('#8a7a62'), hemiI: 1.15, skyTop: C('#2f6fd0'), skyHor: C('#cfe3f5'), fog: C('#d3e2ee'), fogD: 0.0032, night: 0, flood: 0, exposure: 1.0, bloom: 0.32 , bpBg: C('#0d2a52'), bpBg2: C('#081a36'), bpLine: C('#d8f1ff'), bpGold: C('#ffd27a'), bpFill: 0.07, bpGain: 1.35 },
+    golden: { sunDir: V(-0.78, 0.33, 0.5), sunCol: C('#ffc27a'), sunI: 3.3, hemiSky: C('#ffd9b5'), hemiGround: C('#6b5a48'), hemiI: 0.9, skyTop: C('#4a76c4'), skyHor: C('#ffc890'), fog: C('#efc6a0'), fogD: 0.0038, night: 0, flood: 0.1, exposure: 1.05, bloom: 0.45 , bpBg: C('#1d2a55'), bpBg2: C('#10183a'), bpLine: C('#ffe6c8'), bpGold: C('#ffc35a'), bpFill: 0.07, bpGain: 1.35 },
+    sunset: { sunDir: V(-0.85, 0.11, 0.45), sunCol: C('#ff7a3c'), sunI: 2.4, hemiSky: C('#c890a0'), hemiGround: C('#4a3a3a'), hemiI: 0.75, skyTop: C('#2c3f7a'), skyHor: C('#ff8656'), fog: C('#c27866'), fogD: 0.0045, night: 0.35, flood: 0.3, exposure: 1.1, bloom: 0.6 , bpBg: C('#2a1c4a'), bpBg2: C('#160f2e'), bpLine: C('#ffd0b8'), bpGold: C('#ffb347'), bpFill: 0.06, bpGain: 1.4 },
+    bluehour: { sunDir: V(-0.9, 0.04, 0.4), sunCol: C('#7a8cff'), sunI: 0.6, hemiSky: C('#5070c0'), hemiGround: C('#202030'), hemiI: 0.95, skyTop: C('#0f1a44'), skyHor: C('#3a4f9a'), fog: C('#2a3466'), fogD: 0.0048, night: 0.85, flood: 0.75, exposure: 1.15, bloom: 0.8 , bpBg: C('#0b1640'), bpBg2: C('#060c26'), bpLine: C('#a8d4ff'), bpGold: C('#ffcf6a'), bpFill: 0.05, bpGain: 1.45 },
+    night: { sunDir: V(0.3, 0.6, -0.5), sunCol: C('#8fa8ff'), sunI: 0.8, hemiSky: C('#3a4f96'), hemiGround: C('#1c1c2a'), hemiI: 1.1, skyTop: C('#040920'), skyHor: C('#1a2550'), fog: C('#121a3a'), fogD: 0.0042, night: 1, flood: 0.85, exposure: 1.15, bloom: 0.95 , bpBg: C('#050b1e'), bpBg2: C('#02050f'), bpLine: C('#7fb8ff'), bpGold: C('#ffd27a'), bpFill: 0.04, bpGain: 1.5 },
+    winter: { sunDir: V(-0.3, 0.45, 0.6), sunCol: C('#e8eef5'), sunI: 1.3, hemiSky: C('#c8d4e4'), hemiGround: C('#8a8f99'), hemiI: 1.35, skyTop: C('#8193ab'), skyHor: C('#c9d2dc'), fog: C('#c3ccd6'), fogD: 0.0055, night: 0.2, flood: 0, exposure: 1.0, bloom: 0.3 , bpBg: C('#eef2f6'), bpBg2: C('#d8e0e8'), bpLine: C('#22344d'), bpGold: C('#8a5a12'), bpFill: 0.05, bpGain: 1.0 },
+    spring: { sunDir: V(-0.55, 0.55, 0.55), sunCol: C('#fff0d0'), sunI: 3.2, hemiSky: C('#c4dcff'), hemiGround: C('#8a7a5a'), hemiI: 1.1, skyTop: C('#3a86e0'), skyHor: C('#d8ecff'), fog: C('#d9e8f4'), fogD: 0.003, night: 0, flood: 0, exposure: 1.05, bloom: 0.38 , bpBg: C('#0d2a52'), bpBg2: C('#081a36'), bpLine: C('#e8fff2'), bpGold: C('#ffd27a'), bpFill: 0.07, bpGain: 1.35 },
+    finale: { sunDir: V(0.3, 0.6, -0.5), sunCol: C('#8fa8ff'), sunI: 0.8, hemiSky: C('#3a4f96'), hemiGround: C('#1c1c2a'), hemiI: 1.05, skyTop: C('#030716'), skyHor: C('#24306a'), fog: C('#101838'), fogD: 0.0028, night: 1, flood: 1.8, exposure: 1.2, bloom: 1.25 , bpBg: C('#040816'), bpBg2: C('#01030a'), bpLine: C('#9fd0ff'), bpGold: C('#ffe08a'), bpFill: 0.04, bpGain: 1.6 },
   };
   const LIGHT_KEYS = [[0, 'day'], [16, 'day'], [19.4, 'golden'], [21.2, 'sunset'], [22.8, 'bluehour'], [24.4, 'night'], [54, 'night'], [55.2, 'winter'], [57.6, 'winter'], [60.4, 'spring'], [64.3, 'spring'], [64.9, 'sunset'], [65.35, 'night'], [65.5, 'finale'], [76, 'finale']];
   const LT = Object.fromEntries(Object.keys(PRE.day).map((k) => [k, PRE.day[k].clone ? PRE.day[k].clone() : PRE.day[k]]));
@@ -334,6 +345,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
       if (t < 7.2) { const k = 1 - smooth(5.9, 7.2, t); const su = city.sky.material.uniforms; const navy = new THREE.Color('#081428'); su.uBot.value.lerp(navy, k); su.uHor.value.lerp(navy, k); su.uTop.value.lerp(navy, k); }
       city.lampMat.uniforms.uScale.value = height * 0.6;
       out.scene = city.scene; out.exposure = L.exposure; out.bloom = L.bloom; out.sat = 1.02;
+      out.bp = { bg: L.bpBg, bg2: L.bpBg2, line: L.bpLine, gold: L.bpGold, fill: L.bpFill, gain: L.bpGain, far: clamp(dist * 3, 60, 320) };
       city.snowMat.uniforms.uC.value.copy(target); city.snowMat.uniforms.uScale.value = height; city.dust.material.uniforms.uScale.value = height * 1.4; city.fireworks.material.uniforms.uScale.value = height * 2.6;
       out.tilt = clamp(0.95 - dist / 400, 0.3, 0.85);
       out.focus = 0.52;
@@ -342,6 +354,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
       const g = galleryCam(t);
       gallery.update(t, g.idx);
       applyCam(cam, [...g.pos, ...g.look, g.fov], sh * 0.3, t);
+      out.bp = { bg: gallery.scene.background.clone().multiplyScalar(0.55), bg2: gallery.scene.background.clone().multiplyScalar(0.25), line: C2('#fff3e0'), gold: C2('#ffd27a'), fill: 0.06, gain: 1.4, far: 40 };
       out.scene = gallery.scene; out.whip = g.whip; out.tilt = 0.75; out.bloom = 0.45; out.exposure = 0.95; out.vig = 0.5; out.focus = 0.55;
     } else if (name === 'map1' || name === 'map2') {
       const s = name === 'map1' ? { l1: inv(43.15, 44.3, t), l2: 0, pinW: inv(43.9, 44.5, t), pinO: 0 } : { l1: 1, l2: inv(49.35, 50.3, t), pinW: 1, pinO: inv(50.0, 50.5, t) };
@@ -351,10 +364,12 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     } else if (name === 'wieliczka') {
       wiel.update(t, inv(46.9, 48.1, t));
       applyCam(cam, hermite(PATHS.wieliczka, t), sh * 0.2, t);
+      out.bp = BP_WIEL;
       out.scene = wiel.scene; out.tilt = 0.45; out.bloom = 0.6; out.exposure = 0.82; out.vig = 0.55; out.sat = 0.95;
     } else if (name === 'memorial') {
       memo.update(t);
       applyCam(cam, hermite(PATHS.memorial, t), 0, t);
+      out.bp = BP_MEMO;
       out.scene = memo.scene; out.tilt = 0.25; out.bloom = 0.25; out.sat = 0.12; out.vig = 0.55; out.exposure = 0.95; out.contrast = 1.02;
     }
     return out;
@@ -470,6 +485,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   // ---------- render ----------
   function renderShot(name, t, cam, rt) {
     const o = shot(name, t, cam);
+    if (bp && o.bp) { bp.render(o.scene, cam, rt, o.bp); o.bloom *= 0.55; if (o.tilt) o.tilt *= 0.6; return o; }
     renderer.setRenderTarget(rt); renderer.clear(); renderer.render(o.scene, o.camera || cam);
     return o;
   }
@@ -504,7 +520,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     width = w; height = h;
     renderer.setSize(w, h, false);
     for (const rt of [rtA, rtB, rtMix]) rt.setSize(w, h);
-    bloom.setSize(w, h);
+    bloom.setSize(w, h); if (bp) bp.resize(w, h);
     gradeMat.uniforms.uRes.value.set(w, h); mixMat.uniforms.uAspect.value = w / h;
   }
   // warm-up: compile all programs by rendering each shot once

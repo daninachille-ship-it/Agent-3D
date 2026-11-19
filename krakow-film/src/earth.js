@@ -49,13 +49,28 @@ function valueNoise(w, h, seed, octaves = 5, base = 8) {
   return out;
 }
 
-export function buildEarth(world, topojson) {
+export function buildEarth(world, topojson, { blueprint = false } = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x01030a);
   const countries = topojson.feature(world, world.objects.countries).features;
   const W = 8192, H = 4096;
 
-  const map = canvasTex(W, H, (g) => {
+  const map = blueprint ? canvasTex(W, H, (g) => {
+    g.fillStyle = '#061a36'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(120,190,255,0.22)'; g.lineWidth = 2;
+    for (let lo = -180; lo <= 180; lo += 10) { const x = (lo + 180) / 360 * W; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let la = -80; la <= 80; la += 10) { const y = (90 - la) / 180 * H; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    g.fillStyle = '#0c2d55';
+    for (const ox of [-W, 0, W]) { g.beginPath(); for (const f of countries) drawGeo(g, f, W, H, ox); g.fill(); }
+    g.strokeStyle = 'rgba(110,180,240,0.55)'; g.lineWidth = 2;
+    g.beginPath(); for (const f of countries) drawGeo(g, f, W, H, 0); g.stroke();
+    g.save(); g.filter = 'blur(6px)'; g.strokeStyle = 'rgba(150,220,255,0.6)'; g.lineWidth = 10;
+    const land = topojson.feature(world, world.objects.land || world.objects.countries);
+    const feats = land.features || [land];
+    g.beginPath(); for (const ox of [-W, 0, W]) for (const f of feats) drawGeo(g, f, W, H, ox); g.stroke(); g.restore();
+    g.strokeStyle = '#d8f1ff'; g.lineWidth = 3.5;
+    g.beginPath(); for (const ox of [-W, 0, W]) for (const f of feats) drawGeo(g, f, W, H, ox); g.stroke();
+  }) : canvasTex(W, H, (g) => {
     // ocean
     const oc = g.createLinearGradient(0, 0, 0, H);
     oc.addColorStop(0, '#0b2a52'); oc.addColorStop(0.5, '#0a3d78'); oc.addColorStop(1, '#0b2a52');
@@ -115,7 +130,7 @@ export function buildEarth(world, topojson) {
     g.putImageData(img, 0, 0);
   });
   const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.012, 128, 96), new THREE.MeshStandardMaterial({ map: cloudTex, transparent: true, depthWrite: false, roughness: 1 }));
-  scene.add(clouds);
+  scene.add(clouds); if (blueprint) clouds.visible = false;
 
   // atmosphere rim
   const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.08, 96, 64), new THREE.ShaderMaterial({
@@ -211,7 +226,7 @@ export function buildEarth(world, topojson) {
     beaconMat.uniforms.uO.value *= near; pin.material.opacity *= near; ring.material.opacity *= near;
     pin.visible = ring.visible = beacon.visible = near > 0.001;
     atmo.visible = d > 1.1; atmoFront.visible = d > 1.03;
-    clouds.visible = d > 1.1; clouds.material.opacity *= smooth(1.1, 1.45, d);
+    clouds.visible = !blueprint && d > 1.1; clouds.material.opacity *= smooth(1.1, 1.45, d);
   }
   return { scene, update, krakowScreen: kp };
 }
