@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Krakow – 7 Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<style>
+  :root { --gold: #ffd27a; --ink: #0b1020; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #stage { position: absolute; inset: 0; margin: auto; aspect-ratio: 16 / 9; max-width: 100vw; max-height: 100vh; container-type: size; }
+  #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #ov { position: absolute; inset: 0; pointer-events: none; font-family: 'Inter Display', 'Inter', system-ui, sans-serif; color: #fff; overflow: hidden; }
+  #ov > div { position: absolute; visibility: hidden; }
+  /* HUD */
+  #hud { left: 3.2cqw; top: 4.5cqh; }
+  .hud-day { display: flex; align-items: baseline; gap: .5cqw; text-shadow: 0 .2cqw 1.2cqw rgba(0,0,0,.45); }
+  .hud-k { font-weight: 800; font-size: 1.05cqw; letter-spacing: .35em; opacity: .85; }
+  .hud-n { font-weight: 900; font-size: 3.6cqw; line-height: 1; display: inline-block; transform-origin: 50% 80%; color: #ffe3a6; }
+  .hud-of { font-weight: 600; font-size: 1.05cqw; opacity: .7; letter-spacing: .1em; }
+  .hud-sub { font-weight: 600; font-size: .95cqw; letter-spacing: .22em; text-transform: uppercase; opacity: .85; margin-top: .3cqw; text-shadow: 0 .1cqw .8cqw rgba(0,0,0,.6); }
+  .hud-dots { display: flex; gap: .45cqw; margin-top: .7cqw; }
+  .hud-dots i { width: 1.6cqw; height: .25cqw; border-radius: 1cqw; background: rgba(255,255,255,.28); }
+  .hud-dots i.on { background: var(--gold); box-shadow: 0 0 .8cqw rgba(255,210,122,.8); }
+  /* lower-left label */
+  #label { left: 3.2cqw; bottom: 7cqh; max-width: 60cqw; text-shadow: 0 .2cqw 1.4cqw rgba(0,0,0,.55); }
+  .lab-k { display: inline-block; font-weight: 800; font-size: .9cqw; letter-spacing: .3em; color: var(--ink); background: var(--gold); padding: .35cqw .7cqw; border-radius: .2cqw; text-shadow: none; }
+  .lab-n { font-weight: 900; font-size: 4.1cqw; line-height: 1.05; margin-top: .6cqw; white-space: nowrap; }
+  .lab-s { font-weight: 600; font-size: 1.15cqw; opacity: .9; margin-top: .3cqw; letter-spacing: .02em; }
+  /* intro title */
+  #title { inset: 0; background: radial-gradient(ellipse 60% 45% at 50% 50%, rgba(10,12,25,.42), rgba(10,12,25,0) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .t-main { font-weight: 900; font-size: 15.5cqw; line-height: .9; letter-spacing: .06em; padding-left: .06em; display: flex; }
+  .t-main span { display: inline-block; background: linear-gradient(180deg, #ffffff 30%, #ffd99a 75%, #ff9f5a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 2cqw rgba(255,190,120,.35)); }
+  .t-sub { display: flex; align-items: center; gap: 1.5cqw; margin-top: 1.6cqw; font-weight: 800; font-size: 2.8cqw; letter-spacing: .42em; text-shadow: 0 0 1.5cqw rgba(0,0,0,.5); }
+  .t-sub .ln { width: 7cqw; height: .18cqw; background: linear-gradient(90deg, transparent, var(--gold)); }
+  .t-sub .ln:last-child { transform: scaleX(-1); }
+  /* finale */
+  #final { inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(5,8,20,.4), rgba(5,8,20,0) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; text-shadow: 0 0 2cqw rgba(0,0,0,.45); }
+  .f1 { font-weight: 900; font-size: 5.6cqw; letter-spacing: .18em; padding-left: .18em; }
+  .f1 em { font-style: normal; color: var(--gold); }
+  .f2 { display: flex; flex-direction: column; align-items: center; margin-top: 1cqw; }
+  .f2 span { display: block; font-weight: 900; font-size: 3.4cqw; letter-spacing: .08em; line-height: 1.12; }
+  .f2 span:nth-child(3) { background: linear-gradient(90deg, #ffd27a, #ff8a5c, #ff5fa8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .f3 { position: absolute; font-weight: 900; font-size: 10.5cqw; letter-spacing: .02em; background: linear-gradient(180deg, #fff 25%, #ffd27a 70%, #ff8a4c); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 2.4cqw rgba(255,180,90,.45)); }
+  /* memorial */
+  #memo { left: 0; right: 0; bottom: 12cqh; text-align: center; color: #f2f2f2; text-shadow: 0 0 1cqw rgba(0,0,0,.4); }
+  .m1 { font-weight: 800; font-size: 3.2cqw; letter-spacing: .32em; padding-left: .32em; }
+  .m2 { font-weight: 400; font-size: 1.15cqw; letter-spacing: .2em; margin-top: .8cqw; opacity: .9; }
+  .m3 { font-weight: 400; font-size: 1.3cqw; font-style: italic; margin-top: 1.6cqw; opacity: .9; }
+  /* march */
+  #march { right: 4cqw; top: 9cqh; text-align: right; text-shadow: 0 .2cqw 1.4cqw rgba(0,0,0,.5); }
+  .mk { font-weight: 900; font-size: 3.0cqw; letter-spacing: .3em; }
+  .mt { font-weight: 900; font-size: 6cqw; line-height: 1.1; }
+  .mt .arrow, .mt .to { display: none; }
+  .ms { font-weight: 600; font-size: 1.2cqw; letter-spacing: .12em; opacity: .95; }
+  /* player UI */
+  #ui { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(10,16,32,.55), rgba(0,0,0,.85)); color: #fff; font-family: Inter, system-ui, sans-serif; z-index: 10; }
+  #ui button { font: 800 18px Inter, sans-serif; letter-spacing: .25em; padding: 18px 34px; border-radius: 999px; border: 0; background: linear-gradient(90deg,#ffd27a,#ff8a5c); color: #1a1020; cursor: pointer; }
+  #ui p { opacity: .7; margin-top: 14px; font-size: 13px; letter-spacing: .1em; text-align: center; }
+  body.render #ui { display: none; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas><div id="ov"></div></div>
+<div id="ui"><div style="text-align:center"><button id="play">▶ PLAY FILM</button><p id="status">Loading the city…</p></div></div>
+<audio id="audio" src="./data/soundtrack.m4a" preload="auto"></audio>
+<script src="./vendor/topojson-client.min.js"></script>
+<script type="module">
+  import { createFilm } from './src/main.js';
+  const params = new URLSearchParams(location.search);
+  const render = params.has('render');
+  if (render) document.body.classList.add('render');
+  const stage = document.getElementById('stage');
+  const rect = stage.getBoundingClientRect();
+  const W = render ? +(params.get('w') || 1920) : Math.round(rect.width * Math.min(devicePixelRatio, 2));
+  const H = render ? +(params.get('h') || 1080) : Math.round(rect.height * Math.min(devicePixelRatio, 2));
+  const world = await (await fetch('./data/countries-50m.json')).json();
+  await document.fonts.ready;
+  const film = await createFilm({ canvas: document.getElementById('c'), width: W, height: H, world, topojson: window.topojson, overlay: document.getElementById('ov') });
+  window.film = film;
+  if (render) { await film.warmup(); window.filmReady = true; }
+  else {
+    film.renderAt(0);
+    const audio = document.getElementById('audio');
+    document.getElementById('status').textContent = '75 s · sound on';
+    document.getElementById('play').onclick = () => {
+      document.getElementById('ui').style.display = 'none';
+      audio.currentTime = 0; audio.play().catch(() => {});
+      const t0 = performance.now();
+      const loop = () => { const t = audio.duration && !audio.paused ? audio.currentTime : (performance.now() - t0) / 1000; film.renderAt(t); if (t < film.duration) requestAnimationFrame(loop); else document.getElementById('ui').style.display = 'flex'; };
+      loop();
+    };
+  }
+</script>
+</body>
+</html>
