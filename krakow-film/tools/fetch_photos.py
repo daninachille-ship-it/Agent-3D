@@ -19,7 +19,7 @@ def get(url):
             time.sleep(wait)
     raise RuntimeError('failed ' + url)
 
-def search(query, n=5):
+def search(query, n=8):
     """Search via Openverse (CC-licensed images, no key); prefer Wikimedia-hosted files (1920 px thumbs)."""
     q = {'q': query, 'page_size': 20, 'license_type': 'commercial,modification', 'aspect_ratio': 'wide', 'size': 'large'}
     d = json.loads(get('https://api.openverse.org/v1/images/?' + urllib.parse.urlencode(q)))
@@ -50,13 +50,13 @@ if __name__ == '__main__':
             path = os.path.join(outdir, fn)
             if not os.path.exists(path):
                 data = None
-                for wpx in ('1920px-', '1280px-', '960px-'):
+                for wpx in ('1920px-', '1600px-', '1280px-', '1200px-', '1024px-', '960px-', '800px-'):
                     url = r['thumb'].replace('/1920px-', '/' + wpx)
                     try:
                         req = urllib.request.Request(url, headers={'User-Agent': UA})
                         with urllib.request.urlopen(req, timeout=60) as resp: data = resp.read(); break
                     except Exception as e:
-                        time.sleep(4)
+                        time.sleep(1.5)
                 if data is None: print('skip', fn, flush=True); continue
                 open(path, 'wb').write(data)
                 time.sleep(1.0)
