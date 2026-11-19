@@ -25,12 +25,12 @@ def get_once(url):
 
 def search(query, n=6):
     """Search via Openverse (CC-licensed images, no key); prefer Wikimedia-hosted files (1920 px thumbs)."""
-    q = {'q': query, 'page_size': 20, 'license_type': 'commercial,modification', 'aspect_ratio': 'wide', 'size': 'large'}
+    q = {'q': query, 'page_size': 20, 'license_type': 'commercial,modification', 'source': 'flickr'}
     d = json.loads(get('https://api.openverse.org/v1/images/?' + urllib.parse.urlencode(q)))
     out = []
     for r in d.get('results', []):
         url = r.get('url', ''); w = r.get('width') or 0; h = r.get('height') or 1
-        if w < 1600 or w < h * 1.15 or not url.lower().endswith(('.jpg', '.jpeg')): continue
+        if w < 1000 or w < h * 1.2 or not url.lower().endswith(('.jpg', '.jpeg')): continue
         if 'upload.wikimedia.org/wikipedia/commons/' in url:
             name = url.rsplit('/', 1)[-1]
             thumb = url.replace('/wikipedia/commons/', '/wikipedia/commons/thumb/') + f'/1920px-{name}'
