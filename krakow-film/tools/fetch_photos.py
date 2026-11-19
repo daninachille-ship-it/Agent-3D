@@ -20,23 +20,21 @@ def get(url):
     raise RuntimeError('failed ' + url)
 
 def search(query, n=5):
-    q = {'action': 'query', 'format': 'json', 'generator': 'search', 'gsrsearch': query + ' filetype:bitmap', 'gsrnamespace': 6, 'gsrlimit': 15,
-         'prop': 'imageinfo', 'iiprop': 'url|size|extmetadata|mime', 'iiextmetadatafilter': 'LicenseShortName|Artist'}
-    d = json.loads(get(API + '?' + urllib.parse.urlencode(q)))
-    pages = sorted(d.get('query', {}).get('pages', {}).values(), key=lambda p: p.get('index', 0))
+    """Search via Openverse (CC-licensed images, no key); prefer Wikimedia-hosted files (1920 px thumbs)."""
+    q = {'q': query, 'page_size': 20, 'license_type': 'commercial,modification', 'aspect_ratio': 'wide', 'size': 'large'}
+    d = json.loads(get('https://api.openverse.org/v1/images/?' + urllib.parse.urlencode(q)))
     out = []
-    for p in pages:
-        ii = (p.get('imageinfo') or [{}])[0]
-        if ii.get('mime') != 'image/jpeg': continue
-        w, h = ii.get('width', 0), ii.get('height', 0)
-        if w < 1800 or w < h * 1.15: continue
-        md = ii.get('extmetadata', {})
-        lic = md.get('LicenseShortName', {}).get('value', '')
-        if not OK_LIC.match(lic.strip().lower().replace(' ', '-')): continue
-        artist = re.sub('<[^>]+>', '', md.get('Artist', {}).get('value', '')).strip()
-        orig = ii.get('url', ''); name = orig.rsplit('/', 1)[-1]
-        thumb = orig.replace('/wikipedia/commons/', '/wikipedia/commons/thumb/') + f'/1920px-{name}'
-        out.append({'title': p['title'], 'thumb': thumb, 'page': ii.get('descriptionurl'), 'license': lic, 'author': artist, 'w': w, 'h': h})
+    for r in d.get('results', []):
+        url = r.get('url', ''); w = r.get('width') or 0; h = r.get('height') or 1
+        if w < 1600 or w < h * 1.15 or not url.lower().endswith(('.jpg', '.jpeg')): continue
+        if 'upload.wikimedia.org/wikipedia/commons/' in url:
+            name = url.rsplit('/', 1)[-1]
+            thumb = url.replace('/wikipedia/commons/', '/wikipedia/commons/thumb/') + f'/1920px-{name}'
+        elif 'staticflickr.com' in url: thumb = url
+        else: continue
+        lic = f"CC {r.get('license', '').upper()} {r.get('license_version') or ''}".strip()
+        if r.get('license') in ('cc0', 'pdm'): lic = r['license'].upper()
+        out.append({'title': r.get('title') or '', 'thumb': thumb, 'page': r.get('foreign_landing_url'), 'license': lic, 'author': r.get('creator') or '', 'w': w, 'h': h, 'source': r.get('source')})
         if len(out) >= n: break
     return out
 
