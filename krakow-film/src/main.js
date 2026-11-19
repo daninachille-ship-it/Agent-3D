@@ -6,11 +6,13 @@ import { buildEarth } from './earth.js';
 import { buildCity, P } from './city.js';
 import { buildGallery, buildMap, buildWieliczka, buildMemorial } from './dioramas.js';
 import { SEGMENTS, IMPACTS, TABLEAUX, DURATION } from './timeline.js';
+import { buildPhotos, PLATES } from './photos.js';
 
 const G = GG; window.__G = GG;
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-export async function createFilm({ canvas, width, height, world, topojson, overlay }) {
+export async function createFilm({ canvas, width, height, world, topojson, overlay, style = 'photo' }) {
+  const PHOTO = style === 'photo';
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(1);
   renderer.setSize(width, height, false);
@@ -21,11 +23,12 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   // ---------- worlds ----------
   let _t = performance.now(); const lap = (n) => { const x = performance.now(); console.log(`[t] ${n} ${(x - _t).toFixed(0)}ms`); _t = x; };
   const earth = buildEarth(world, topojson); lap('earth');
-  const city = buildCity(); lap('city');
-  const gallery = buildGallery(); lap('gallery');
+  const photos = PHOTO ? buildPhotos() : null; if (photos) { await photos.ready; lap('photos'); }
+  const city = PHOTO ? null : buildCity(); lap('city');
+  const gallery = PHOTO ? null : buildGallery(); lap('gallery');
   const map = buildMap(world, topojson); lap('map');
-  const wiel = buildWieliczka(); lap('wieliczka');
-  const memo = buildMemorial(); lap('memorial');
+  const wiel = PHOTO ? null : buildWieliczka(); lap('wieliczka');
+  const memo = PHOTO ? null : buildMemorial(); lap('memorial');
 
   const camA = new THREE.PerspectiveCamera(40, width / height, 0.1, 2000);
   const camB = new THREE.PerspectiveCamera(40, width / height, 0.1, 2000);
@@ -37,7 +40,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   });
   const clouds = new THREE.Group();
   { const r = rng(12); for (let i = 0; i < 46; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, transparent: true, depthWrite: false, opacity: 0.7, fog: false })); const u = r(); s.position.set(lerp(-10, 80, u) + (r() - 0.5) * 120, lerp(230, 80, u) + (r() - 0.5) * 30, lerp(160, 110, u) + (r() - 0.5) * 120); s.scale.setScalar(60 + r() * 80); clouds.add(s); } }
-  city.scene.add(clouds);
+  if (city) city.scene.add(clouds);
 
   // ---------- lighting presets ----------
   const C = (h) => new THREE.Color(h);
@@ -308,6 +311,15 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   function shot(name, t, cam) {
     const out = { scene: null, tilt: 0.55, sat: 1.12, vig: 0.38, focus: 0.5, exposure: 1, bloom: 0.4, whip: 0, tint: [1, 1, 1], contrast: 1.06 };
     const sh = impactEnv(t) * 0.25;
+    if (PHOTO && PLATES[name]) {
+      const r = photos.update(name, t, width / height);
+      out.scene = r.scene; out.camera = r.cam;
+      out.exposure = 0.92; out.bloom = 0.3; out.tilt = name === 'memorial' ? 0 : 0.28; out.focus = 0.5; out.sat = 1.08; out.vig = 0.42; out.contrast = 1.1;
+      if (name === 'gallery') { let w = 0; for (const tb of TABLEAUX.slice(1)) w = Math.max(w, bump(tb - 0.18, tb + 0.12, t, 0.1, 0.1)); out.whip = w; }
+      if (name === 'memorial') { out.sat = 0.15; out.bloom = 0.1; out.vig = 0.55; out.contrast = 1.02; }
+      if (name === 'late' && t > 65.4) { out.bloom = 0.55; out.sat = 1.15; }
+      return out;
+    }
     if (name === 'earth') {
       earth.update(t, cam); out.scene = earth.scene; out.tilt = 0; out.bloom = 0.9; out.exposure = 1.1; out.vig = 0.5;
     } else if (name === 'old' || name === 'kaz' || name === 'late') {
@@ -458,7 +470,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   // ---------- render ----------
   function renderShot(name, t, cam, rt) {
     const o = shot(name, t, cam);
-    renderer.setRenderTarget(rt); renderer.clear(); renderer.render(o.scene, cam);
+    renderer.setRenderTarget(rt); renderer.clear(); renderer.render(o.scene, o.camera || cam);
     return o;
   }
   function renderAt(t) {
@@ -471,7 +483,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
       const m = (t - seg.t0) / (seg.t1 - seg.t0);
       const oa = renderShot(seg.from, t, camA, rtA);
       const ob = renderShot(seg.to, t, camB, rtB);
-      o = {}; for (const k in oa) o[k] = typeof oa[k] === 'number' ? lerp(oa[k], ob[k], m) : (m < 0.5 ? oa[k] : ob[k]);
+      o = {}; for (const k in oa) o[k] = typeof oa[k] === 'number' && typeof ob[k] === 'number' ? lerp(oa[k], ob[k], m) : (m < 0.5 ? oa[k] : ob[k]);
       mixMat.uniforms.uMix.value = m; mixMat.uniforms.uMode.value = seg.mode;
     }
     mixMat.uniforms.uTime.value = t;

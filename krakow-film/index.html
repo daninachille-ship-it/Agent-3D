@@ -80,7 +80,7 @@
   const H = render ? +(params.get('h') || 1080) : Math.round(rect.height * Math.min(devicePixelRatio, 2));
   const world = await (await fetch('./data/countries-50m.json')).json();
   await document.fonts.ready;
-  const film = await createFilm({ canvas: document.getElementById('c'), width: W, height: H, world, topojson: window.topojson, overlay: document.getElementById('ov') });
+  const film = await createFilm({ canvas: document.getElementById('c'), width: W, height: H, world, topojson: window.topojson, overlay: document.getElementById('ov'), style: params.get('style') || 'photo' });
   window.film = film;
   if (render) { await film.warmup(); window.filmReady = true; }
   else {
