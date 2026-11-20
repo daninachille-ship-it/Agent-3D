@@ -6,15 +6,17 @@ import { buildEarth } from './earth.js';
 import { buildCity, P } from './city.js';
 import { buildGallery, buildMap, buildWieliczka, buildMemorial } from './dioramas.js';
 import { SEGMENTS, IMPACTS, TABLEAUX, DURATION } from './timeline.js';
-import { buildPhotos, PLATES } from './photos.js';
+import { buildPhotos, PLATES, PHOTO_SEGS } from './photos.js';
 import { createBlueprint } from './blueprint.js';
 
 const G = GG; window.__G = GG;
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
 export async function createFilm({ canvas, width, height, world, topojson, overlay, style = 'blueprint' }) {
-  const PHOTO = style === 'photo';
-  const BP = style === 'blueprint';
+  const MIX = style === 'mix';
+  const PHOTO = style === 'photo' || MIX;
+  const BP = style === 'blueprint' || MIX;
+  const CORE3D = !PHOTO || MIX;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(1);
   renderer.setSize(width, height, false);
@@ -26,11 +28,11 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   let _t = performance.now(); const lap = (n) => { const x = performance.now(); console.log(`[t] ${n} ${(x - _t).toFixed(0)}ms`); _t = x; };
   const earth = buildEarth(world, topojson, { blueprint: BP }); lap('earth');
   const photos = PHOTO ? buildPhotos() : null; if (photos) { await photos.ready; lap('photos'); }
-  const city = PHOTO ? null : buildCity(); lap('city');
-  const gallery = PHOTO ? null : buildGallery(); lap('gallery');
+  const city = CORE3D ? buildCity() : null; lap('city');
+  const gallery = CORE3D ? buildGallery() : null; lap('gallery');
   const map = buildMap(world, topojson); lap('map');
-  const wiel = PHOTO ? null : buildWieliczka(); lap('wieliczka');
-  const memo = PHOTO ? null : buildMemorial(); lap('memorial');
+  const wiel = CORE3D ? buildWieliczka() : null; lap('wieliczka');
+  const memo = CORE3D ? buildMemorial() : null; lap('memorial');
 
   const bp = BP ? createBlueprint(renderer, width, height) : null;
   if (bp) {
@@ -322,7 +324,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   function shot(name, t, cam) {
     const out = { scene: null, tilt: 0.55, sat: 1.12, vig: 0.38, focus: 0.5, exposure: 1, bloom: 0.4, whip: 0, tint: [1, 1, 1], contrast: 1.06 };
     const sh = impactEnv(t) * 0.25;
-    if (PHOTO && PLATES[name]) {
+    if (PHOTO && PLATES[name] && (!MIX || PHOTO_SEGS.includes(name))) {
       const r = photos.update(name, t, width / height);
       out.scene = r.scene; out.camera = r.cam;
       out.exposure = 0.92; out.bloom = 0.3; out.tilt = name === 'memorial' ? 0 : 0.28; out.focus = 0.5; out.sat = 1.08; out.vig = 0.42; out.contrast = 1.1;

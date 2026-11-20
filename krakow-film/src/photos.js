@@ -51,10 +51,12 @@ export const PLATES = {
   ],
 };
 
+export const PHOTO_SEGS = ['old', 'kaz', 'late'];
+
 export function buildPhotos(base = './data/photos/') {
   const loader = new THREE.TextureLoader();
   const tex = {};
-  const keys = new Set(Object.values(PLATES).flat().map((p) => p.k));
+  const keys = new Set(PHOTO_SEGS.flatMap((k) => PLATES[k]).map((p) => p.k));
   const loads = [];
   for (const k of keys) {
     loads.push(new Promise((res, rej) => loader.load(`${base}${k}.jpg`, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 4; (tex[k] ||= {}).photo = t; res(); }, undefined, rej)));
@@ -75,12 +77,24 @@ export function buildPhotos(base = './data/photos/') {
       float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hsh(i),hsh(i+vec2(1,0)),f.x), mix(hsh(i+vec2(0,1)),hsh(i+vec2(1,1)),f.x), f.y); }
       float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<4;i++){ v+=a*noise(p); p*=2.07; a*=.5; } return v; }
       void main(){
-        // screen -> image uv (cover fit + ken burns)
-        vec2 p = vUv - .5; p.x *= uScrAspect;
-        float c = cos(uRot), s = sin(uRot); p = mat2(c,-s,s,c) * p;
-        p /= uZoom;
-        vec2 cover = uScrAspect > uImgAspect ? vec2(uScrAspect, uScrAspect/uImgAspect) : vec2(uImgAspect, 1.0);
-        vec2 uv = p / cover + uCenter;
+        bool card = uImgAspect < uScrAspect * 0.8;
+        vec2 uv; vec2 q = vUv; float inCard = 1.0; float edgeD = 1.0;
+        float ch = 0.9, cw = ch * uImgAspect / uScrAspect;
+        float c = cos(uRot), s = sin(uRot);
+        if (card) {
+          // portrait photo shown as a centred card
+          q = (vUv - vec2(0.5 - cw * 0.5, 0.05)) / vec2(cw, ch);
+          inCard = step(0., q.x) * step(q.x, 1.) * step(0., q.y) * step(q.y, 1.);
+          vec2 p2 = q - .5; p2.x *= uImgAspect; p2 = mat2(c,-s,s,c) * p2; p2.x /= uImgAspect;
+          uv = p2 / uZoom + uCenter;
+          edgeD = min(min(q.x, 1. - q.x) * cw * uScrAspect, min(q.y, 1. - q.y) * ch);
+        } else {
+          vec2 p = vUv - .5; p.x *= uScrAspect;
+          p = mat2(c,-s,s,c) * p;
+          p /= uZoom;
+          vec2 cover = uScrAspect > uImgAspect ? vec2(uScrAspect, uScrAspect/uImgAspect) : vec2(uImgAspect, 1.0);
+          uv = p / cover + uCenter;
+        }
         uv = clamp(uv, vec2(0.001), vec2(0.999));
         // blueprint background with grid
         vec2 g = vUv * vec2(uScrAspect, 1.0) * 18.0;
@@ -92,25 +106,41 @@ export function buildPhotos(base = './data/photos/') {
         vec3 bpGrey = vec3(0.10) + vec3(0.04) * (grid * .3 + grid2 * .5);
         vec3 bg = mix(bpBlue, bpGrey, uGrey);
         bg *= 1.0 - .35 * length(vUv - .5);
+        vec3 lineCol = mix(vec3(0.55, 0.9, 1.0), vec3(0.85), uGrey);
+        float glow = mix(1.15, 0.8, uGrey);
         // line drawing, revealed with a sweeping noisy front
-        float L = texture2D(tLines, uv).r;
-        float order = (1.0 - vUv.y) * .55 + fbm(uv * 5.0) * .45;
+        float L = texture2D(tLines, uv).r * inCard;
+        float order = (1.0 - q.y) * .55 + fbm(uv * 5.0) * .45;
         float dr = uDraw * 1.25 - .1;
         float drawn = smoothstep(dr, dr - .06, order);
-        float front = smoothstep(.08, 0., abs(order - dr)) * step(.001, uDraw) * step(uDraw, .999);
-        vec3 lineCol = mix(vec3(0.55, 0.9, 1.0), vec3(0.85), uGrey);
-        float glow = mix(1.6, 0.8, uGrey);
-        vec3 col = bg + lineCol * L * drawn * glow + lineCol * front * (0.25 + L * 2.5) * (1.0 - uGrey * .8);
-        // photographic fill, dissolving in from the brightest structure through noise
+        float front = smoothstep(.08, 0., abs(order - dr)) * step(.001, uDraw) * step(uDraw, .999) * inCard;
+        vec3 col = bg + lineCol * L * drawn * glow * (1.0 - smoothstep(0.0, 0.6, uFill) * 0.6) + lineCol * front * (0.15 + L * 1.4) * (1.0 - uGrey * .8);
+        // card frame drawn with the lines
+        if (card) {
+          float frame = smoothstep(0.004, 0.0, abs(edgeD)) * smoothstep(0., 0.3, uDraw);
+          col += lineCol * frame * 1.4;
+        }
+        // photographic fill, dissolving in through noise
         vec3 ph = texture2D(tPhoto, uv).rgb * uTint * uBright;
         float lum = dot(ph, vec3(.2126,.7152,.0722));
         ph = mix(ph, vec3(lum), uGrey * .92);
-        float fo = fbm(uv * 3.0 + 7.0) * .7 + (1.0 - L) * .1 + (1.0 - vUv.y) * .2;
+        float fo = fbm(uv * 3.0 + 7.0) * .7 + (1.0 - L) * .1 + (1.0 - q.y) * .2;
         float fr = uFill * 1.3 - .15;
-        float filled = smoothstep(fr, fr - .12, fo);
-        float edge = smoothstep(.1, 0., abs(fo - fr)) * step(.001, uFill) * step(uFill, .999);
+        float filled = smoothstep(fr, fr - .12, fo) * inCard;
+        float edge = smoothstep(.1, 0., abs(fo - fr)) * step(.001, uFill) * step(uFill, .999) * inCard;
         col = mix(col, ph + lineCol * L * .25 * (1.0 - uFill), filled);
-        col += mix(vec3(1.0, .62, .28), vec3(.9), uGrey) * edge * mix(2.2, .4, uGrey);
+        col += mix(vec3(1.0, .62, .28), vec3(.9), uGrey) * edge * mix(0.8, .3, uGrey);
+        if (card) {
+          // around the card: the same photo, blurred and dimmed, over the blueprint
+          vec2 ub = vec2(vUv.x, (vUv.y - .5) * uImgAspect / uScrAspect + .5);
+          ub = (ub - .5) / (1.0 + 0.08 * uZoom) + .5;
+          vec3 blur = texture2D(tPhoto, ub, 5.0).rgb * uTint;
+          blur = mix(blur, vec3(dot(blur, vec3(.33))), .25 + uGrey * .7);
+          vec3 outside = mix(bg, blur * 0.32 + bg * 0.5, smoothstep(0., 1., uFill));
+          col = mix(outside, col, inCard);
+          float shadow = (1. - inCard) * smoothstep(0.04, 0., -min(min(q.x, 1. - q.x) * cw * uScrAspect, min(q.y, 1. - q.y) * ch));
+          col *= 1. - shadow * .35;
+        }
         gl_FragColor = vec4(col, 1.0);
       }`,
     depthTest: false, depthWrite: false,
@@ -143,9 +173,9 @@ export function buildPhotos(base = './data/photos/') {
     u.uTime.value = t;
     u.uGrey.value = pl.mode === 'grey' ? 1 : 0;
     u.uTint.value.set(...(pl.tint || [1, 1, 1]));
-    u.uBright.value = 1.0;
+    u.uBright.value = { adalbert: 1.35, tram: 1.45, night: 1.4, kazinight: 1.2, finale: 1.25, florian: 1.2, cloth: 1.15, townhall: 1.2 }[pl.k] || 1.0;
     // keep the cover fit valid while zoomed/rotated: clamp the centre so edges never show
-    const cover = aspect > u.uImgAspect.value ? [1, u.uImgAspect.value / aspect] : [aspect / u.uImgAspect.value, 1];
+    const cover = u.uImgAspect.value < aspect * 0.8 ? [1, 1] : aspect > u.uImgAspect.value ? [1, u.uImgAspect.value / aspect] : [aspect / u.uImgAspect.value, 1];
     const hx = 0.5 * cover[0] / u.uZoom.value * 1.06, hy = 0.5 * cover[1] / u.uZoom.value * 1.06;
     u.uCenter.value.set(clamp(u.uCenter.value.x, hx, 1 - hx), clamp(u.uCenter.value.y, hy, 1 - hy));
     return { scene, cam, plate: pl };

@@ -51,3 +51,13 @@ node tools/render.mjs --stills 6.5,10.3,23.4,48.5,69.8 --out out/stills
 
 Real-time preview: serve the folder (`npx http-server krakow-film`) and open `index.html` in a browser with a GPU.
 Each frame is a pure function of time, so renders are reproducible and can be split across machines.
+
+## Styles
+
+`index.html?style=...` (and the render scripts, via the page default):
+
+- `mix` (default): architect blueprint 3D + real photos (portrait cards that draw themselves in lines, then fill in).
+  Photos are extracted from a personal reference video with `tools/frames_from_video.py` into `data/photos/`
+  (not committed: personal reference material only).
+- `blueprint`: everything as an architect's line drawing, monuments traced in gold.
+- `3d`: the original coloured isometric miniature.
