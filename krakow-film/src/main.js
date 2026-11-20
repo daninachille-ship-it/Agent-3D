@@ -411,7 +411,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     [14.5, 16.8, 'UNESCO · 1978', 'Centre historique', 'L’un des tout premiers sites du patrimoine mondial'],
     [18.0, 20.0, 'JOUR 2 · LA COLLINE ROYALE', 'Château du Wawel', 'Zamek Królewski et la cathédrale royale'],
     [20.8, 26.0, 'JOUR 3 · KAZIMIERZ', 'Kazimierz', 'Cafés · street art · bars en caves · une âme unique'],
-    [26.6, 29.7, 'JOUR 3 · AU FIL DE L’EAU', 'Les berges de la Vistule', 'Bulwary Wiślane — le Wawel illuminé'],
+    [27.5, 29.7, 'JOUR 3 · AU FIL DE L’EAU', 'Les berges de la Vistule', 'Bulwary Wiślane — le Wawel au lever du soleil'],
     [45.3, 49.0, 'JOUR 5 · EXCURSION · 14 KM', 'Mines de sel de Wieliczka', 'Chapelle Sainte-Cunégonde — sculptée dans le sel, à 101 m sous terre'],
   ];
   const TAB_LABELS = [['SAVEURS', 'Pierogi & cuisine polonaise'], ['CAFÉS', 'Kawiarnie & obwarzanki'], ['SHOPPING', 'Ambre & artisanat aux Sukiennice'], ['MUSÉES', 'Patrimoine & trésors royaux'], ['VIE NOCTURNE', 'Bars voûtés en caves'], ['BALADES', 'Chaque rue, une nouvelle histoire']];
