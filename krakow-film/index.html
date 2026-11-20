@@ -57,6 +57,25 @@
   .mt { font-weight: 900; font-size: 6cqw; line-height: 1.1; }
   .mt .arrow, .mt .to { display: none; }
   .ms { font-weight: 600; font-size: 1.2cqw; letter-spacing: .12em; opacity: .95; }
+  /* ---- portrait (9:16) layout ---- */
+  @container (orientation: portrait) {
+    #hud { left: 5cqw; top: 3.2cqh; }
+    .hud-k, .hud-of { font-size: 2.6cqw; } .hud-n { font-size: 8cqw; } .hud-sub { font-size: 2.3cqw; margin-top: .6cqw; }
+    .hud-dots { gap: 1cqw; margin-top: 1.4cqw; } .hud-dots i { width: 4cqw; height: .6cqw; }
+    #label { left: 6cqw; right: 6cqw; bottom: 13cqh; width: auto; }
+    .lab-k { font-size: 2.3cqw; padding: .8cqw 1.5cqw; border-radius: .5cqw; }
+    .lab-n { font-size: 8.4cqw; white-space: normal; width: auto; line-height: 1.04; margin-top: 1.4cqw; }
+    .lab-s { font-size: 3cqw; margin-top: .9cqw; }
+    .t-main { font-size: 13cqw; }
+    .t-sub { font-size: 3.9cqw; margin-top: 3cqw; } .t-sub .ln { display: none; }
+    .f1 { font-size: 6cqw; white-space: normal; padding: 0 4cqw; }
+    .f2 { margin-top: 3cqw; } .f2 span { font-size: 7cqw; padding: 0 5cqw; line-height: 1.12; }
+    .f3 { font-size: 15cqw; white-space: normal; line-height: .95; text-align: center; padding: 0 4cqw; }
+    #memo { bottom: 14cqh; padding: 0 6cqw; }
+    .m1 { font-size: 5cqw; letter-spacing: .12em; padding-left: .12em; } .m2 { font-size: 2.7cqw; letter-spacing: .08em; margin-top: 1.6cqw; } .m3 { font-size: 3.2cqw; margin-top: 3cqw; }
+    #march { right: 5cqw; top: 13cqh; max-width: 80cqw; padding: 3cqw 4cqw; border-radius: 1.5cqw; }
+    .mk { font-size: 4.6cqw; } .mt { font-size: 13cqw; } .ms { font-size: 2.8cqw; white-space: normal; }
+  }
   /* player UI */
   #ui { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(10,16,32,.55), rgba(0,0,0,.85)); color: #fff; font-family: Inter, system-ui, sans-serif; z-index: 10; }
   #ui button { font: 800 18px Inter, sans-serif; letter-spacing: .25em; padding: 18px 34px; border-radius: 999px; border: 0; background: linear-gradient(90deg,#ffd27a,#ff8a5c); color: #1a1020; cursor: pointer; }
@@ -75,6 +94,8 @@
   const render = params.has('render');
   if (render) document.body.classList.add('render');
   const stage = document.getElementById('stage');
+  if (render) stage.style.aspectRatio = `${+(params.get('w') || 1920)} / ${+(params.get('h') || 1080)}`;
+  else if (params.has('portrait')) stage.style.aspectRatio = '9 / 16';
   const rect = stage.getBoundingClientRect();
   const W = render ? +(params.get('w') || 1920) : Math.round(rect.width * Math.min(devicePixelRatio, 2));
   const H = render ? +(params.get('h') || 1080) : Math.round(rect.height * Math.min(devicePixelRatio, 2));

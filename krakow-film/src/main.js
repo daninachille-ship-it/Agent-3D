@@ -14,6 +14,10 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
 export async function createFilm({ canvas, width, height, world, topojson, overlay, style = 'blueprint' }) {
   const MIX = style === 'mix';
+  const PORTRAIT = height > width;
+  const FOVK = PORTRAIT ? 1.75 : 1; // keep a similar horizontal field of view in 9:16
+  const vfov = (f) => 2 * Math.atan(Math.tan(f * Math.PI / 360) * FOVK) * 180 / Math.PI;
+  const LS = PORTRAIT ? 0.45 : 1; // tighter animated letter-spacing in portrait
   const PHOTO = style === 'photo' || MIX;
   const BP = style === 'blueprint' || MIX;
   const CORE3D = !PHOTO || MIX;
@@ -192,7 +196,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     if (shake > 0) cam.position.add(V(Math.sin(t * 91) * shake, Math.sin(t * 73 + 1) * shake, Math.cos(t * 87) * shake));
     cam.up.set(0, 1, 0);
     cam.lookAt(v[3], v[4], v[5]);
-    cam.fov = v[6]; cam.near = 0.05; cam.far = 2500; cam.aspect = width / height;
+    cam.fov = vfov(v[6]); cam.near = 0.05; cam.far = 2500; cam.aspect = width / height;
     cam.updateProjectionMatrix();
   }
 
@@ -334,7 +338,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
       return out;
     }
     if (name === 'earth') {
-      earth.update(t, cam); out.scene = earth.scene; out.tilt = 0; out.bloom = 0.9; out.exposure = 1.1; out.vig = 0.5;
+      earth.update(t, cam); if (PORTRAIT) { cam.aspect = width / height; cam.fov = vfov(cam.fov); cam.updateProjectionMatrix(); } out.scene = earth.scene; out.tilt = 0; out.bloom = 0.9; out.exposure = 1.1; out.vig = 0.5;
     } else if (name === 'old' || name === 'kaz' || name === 'late') {
       const L = updateCity(t);
       const v = name === 'late' ? lateCam(t) : hermite(PATHS[name], t);
@@ -449,10 +453,10 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
         sp.style.transform = `translateY(${((1 - e) * 120).toFixed(1)}px) scale(${lerp(2.2, 1, easeOut(k)).toFixed(3)})`;
         sp.style.filter = `blur(${((1 - k) * 18).toFixed(1)}px)`;
       });
-      tMain.style.letterSpacing = `${lerp(0.22, 0.06, easeOut(clamp((t - 5.9) / 2.2))).toFixed(3)}em`;
+      tMain.style.letterSpacing = `${LS * lerp(0.22, 0.06, easeOut(clamp((t - 5.9) / 2.2))).toFixed(3)}em`;
       const s = clamp((t - 6.7) / 0.5);
       tSub.style.opacity = s.toFixed(3);
-      tSub.style.letterSpacing = `${lerp(0.9, 0.42, easeOutExpo(s)).toFixed(3)}em`;
+      tSub.style.letterSpacing = `${LS * lerp(0.9, 0.42, easeOutExpo(s)).toFixed(3)}em`;
       title.style.transform = `scale(${lerp(1.0, 1.06, clamp((t - 6) / 2.1)).toFixed(4)})`;
     }
     // memorial captions
@@ -467,7 +471,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
       marchEl.querySelector('.from').style.color = tmp < 4 ? '#bfe3ff' : '#ffe0a0';
       marchEl.querySelector('.to').style.opacity = 0;
       marchEl.querySelector('.ms').style.opacity = smooth(59.5, 60.3, t).toFixed(3);
-      marchEl.querySelector('.mk').style.letterSpacing = `${lerp(0.6, 0.3, easeOutExpo(clamp((t - 55.8) / 1.2))).toFixed(3)}em`;
+      marchEl.querySelector('.mk').style.letterSpacing = `${LS * lerp(0.6, 0.3, easeOutExpo(clamp((t - 55.8) / 1.2))).toFixed(3)}em`;
     }
     // finale typography
     const fO = bump(65.9, 76, t, 0.05, 0.1);
@@ -475,7 +479,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
     if (fO > 0) {
       const k1 = clamp((t - 66.0) / 0.6);
       f1.style.opacity = (clamp(k1 * 2) * (1 - smooth(71.4, 71.9, t))).toFixed(3);
-      f1.style.letterSpacing = `${lerp(0.8, 0.18, easeOutExpo(k1)).toFixed(3)}em`;
+      f1.style.letterSpacing = `${LS * lerp(0.8, 0.18, easeOutExpo(k1)).toFixed(3)}em`;
       f1.style.filter = `blur(${((1 - k1) * 14).toFixed(1)}px)`;
       [68.5, 69.5, 70.5].forEach((ts, i) => { const k = clamp((t - ts) / 0.4); f2[i].style.opacity = (k * (1 - smooth(71.4, 71.9, t))).toFixed(3); f2[i].style.transform = `translateY(${((1 - easeOutBack(k, 2.5)) * 50).toFixed(1)}px) scale(${lerp(1.6, 1, easeOutExpo(k)).toFixed(3)})`; });
       const k3 = clamp((t - 72.0) / 0.5);
