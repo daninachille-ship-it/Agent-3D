@@ -34,12 +34,11 @@ export const PLATES = {
     { k: 'walk', t: [40.5, 43.3], kb: [1.05, 0.35, 0.5, 0, 1.25, 0.65, 0.5, 0], draw: [40.5, 40.8], fill: [40.7, 41.1] },
   ],
   wieliczka: [
-    { k: 'headframe', t: [44.6, 46.6], kb: [1.05, 0.5, 0.5, 0, 1.3, 0.5, 0.65, 0], draw: [44.8, 45.5], fill: [45.3, 45.9] },
-    { k: 'kinga', t: [46.6, 49.7], kb: [1.35, 0.5, 0.45, 0, 1.06, 0.5, 0.5, 0], draw: [46.6, 47.0], fill: [46.95, 47.6], tint: [1.04, 1.0, 0.94] },
+    { k: 'headframe', t: [44.6, 46.6], kb: [1.04, 0.5, 0.6, 0, 1.25, 0.5, 0.4, 0], draw: [44.8, 45.5], fill: [45.3, 45.9] },
+    { k: 'kinga', t: [46.6, 49.7], kb: [1.3, 0.5, 0.55, 0, 1.04, 0.5, 0.5, 0], draw: [46.6, 47.0], fill: [46.95, 47.6] },
   ],
   memorial: [
-    { k: 'birkenau', t: [50.1, 53.3], kb: [1.04, 0.5, 0.5, 0, 1.16, 0.5, 0.48, 0], draw: [50.4, 51.6], fill: [51.2, 52.4], mode: 'grey' },
-    { k: 'birkenaurail', t: [53.3, 55.6], kb: [1.04, 0.5, 0.5, 0, 1.12, 0.5, 0.5, 0], draw: [53.3, 53.9], fill: [53.7, 54.4], mode: 'grey' },
+    { k: 'birkenau', t: [50.1, 55.6], kb: [1.03, 0.5, 0.55, 0, 1.18, 0.5, 0.42, 0], draw: [50.4, 51.9], fill: [51.5, 52.9], mode: 'grey' },
   ],
   late: [
     { k: 'winter', t: [54.5, 59.2], kb: [1.06, 0.5, 0.5, 0, 1.3, 0.5, 0.5, 0], draw: [55.5, 56.3], fill: [56.0, 57.0], tint: [0.94, 0.98, 1.06] },
@@ -51,7 +50,7 @@ export const PLATES = {
   ],
 };
 
-export const PHOTO_SEGS = ['old', 'kaz', 'late'];
+export const PHOTO_SEGS = ['old', 'kaz', 'wieliczka', 'memorial', 'late'];
 
 export function buildPhotos(base = './data/photos/') {
   const loader = new THREE.TextureLoader();

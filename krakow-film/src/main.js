@@ -393,6 +393,7 @@ export async function createFilm({ canvas, width, height, world, topojson, overl
   const title = $('#title'), tMain = $('.t-main'), tSub = $('.t-sub'), tSubTx = $('.t-sub .tx');
   const fin = $('#final'), f1 = $('.f1'), f2 = [...ov.querySelectorAll('.f2 span')], f3 = $('.f3');
   const memoEl = $('#memo'), marchEl = $('#march');
+  if (MIX) { memoEl.style.color = '#f2f2f2'; memoEl.style.textShadow = '0 0 1.2cqw rgba(0,0,0,.85)'; }
   tMain.innerHTML = 'CRACOVIE'.split('').map((c) => `<span>${c}</span>`).join('');
   tSubTx.textContent = '7 JOURS – 2 VOYAGEURS';
   f1.innerHTML = 'CRACOVIE <em>–</em> POLOGNE'; f2[0].textContent = '7 JOURS.'; f2[1].textContent = '2 VOYAGEURS.'; f2[2].textContent = 'D’INNOMBRABLES EXPÉRIENCES.';
